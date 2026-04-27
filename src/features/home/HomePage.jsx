@@ -41,6 +41,17 @@ const HomePage = ({ setView, setEvalType }) => {
             setView('select');
           }}
         />
+
+        <MenuLink 
+          icon={BookOpen}
+          colorClass="cyan"
+          title="Nilai Bacaan"
+          subtitle="Tajwid, Kelancaran, dsb"
+          onClick={() => {
+            setEvalType('bacaan');
+            setView('select');
+          }}
+        />
         
         <MenuLink 
           icon={Star}

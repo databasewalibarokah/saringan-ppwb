@@ -11,6 +11,8 @@ const AccountPage = React.lazy(() => import('./features/account/AccountPage'));
 const SelectStudentPage = React.lazy(() => import('./features/evaluation/SelectStudentPage'));
 const EvaluationPage = React.lazy(() => import('./features/evaluation/EvaluationPage'));
 const AkhlakPage = React.lazy(() => import('./features/evaluation/AkhlakPage'));
+const BacaanSelectPage = React.lazy(() => import('./features/evaluation/BacaanSelectPage'));
+const BacaanEvaluatePage = React.lazy(() => import('./features/evaluation/BacaanEvaluatePage'));
 const DaftarPesertaPage = React.lazy(() => import('./features/students/DaftarPesertaPage'));
 const StudentDetailPage = React.lazy(() => import('./features/students/StudentDetailPage'));
 
@@ -56,12 +58,37 @@ export default function App() {
     }
 
     if (view === 'select') {
+      if (evalType === 'bacaan') {
+        return (
+          <BacaanSelectPage 
+            selectedStudents={selectedStudents}
+            toggleStudent={toggleStudent}
+            onBack={() => setView('main')}
+            onContinue={() => setView('bacaan-evaluate')}
+          />
+        );
+      }
       return (
         <SelectStudentPage 
           selectedStudents={selectedStudents}
           toggleStudent={toggleStudent}
           onBack={() => setView('main')}
           onContinue={() => setView(evalType === 'akhlak' ? 'akhlak' : 'evaluate')}
+        />
+      );
+    }
+
+    if (view === 'bacaan-evaluate') {
+      return (
+        <BacaanEvaluatePage 
+          selectedStudents={selectedStudents}
+          onBack={() => setView('select')}
+          onSubmit={(results) => {
+            const count = Object.keys(results).length;
+            setSuccessAlert({ show: true, message: `Berhasil menyimpan hasil tes bacaan untuk ${count} santri!` });
+            clearSelection();
+            setView('main');
+          }}
         />
       );
     }
