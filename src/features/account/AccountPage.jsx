@@ -3,18 +3,18 @@ import { Edit3, Award, Moon, Sun, LogOut } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import MenuLink from '../../components/MenuLink';
 
-const AccountPage = ({ darkMode, toggleDarkMode }) => {
+const AccountPage = ({ darkMode, toggleDarkMode, user, onLogout }) => {
   return (
     <div className="pb-24 animate-in fade-in duration-500">
       <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-6">Akun</h1>
       
       <GlassCard className="p-6 mb-8 flex items-center gap-5">
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-emerald-500/30">
-          AM
+          {user?.name?.charAt(0) || 'U'}
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Ust. Ahmad Muzakki</h2>
-          <p className="text-emerald-600 dark:text-emerald-400 font-medium">Penguji Utama • Camp A</p>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{user?.name || 'User'}</h2>
+          <p className="text-emerald-600 dark:text-emerald-400 font-medium">{(user?.role === 'admin' ? 'Penguji Utama' : 'Penguji') || 'Penguji'} • Camp A</p>
         </div>
       </GlassCard>
 
@@ -58,7 +58,7 @@ const AccountPage = ({ darkMode, toggleDarkMode }) => {
             colorClass="red"
             title="Keluar Aplikasi"
             hideChevron={true}
-            onClick={() => {}}
+            onClick={onLogout}
           />
         </GlassCard>
       </div>

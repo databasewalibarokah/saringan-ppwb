@@ -15,6 +15,7 @@ const BacaanSelectPage = React.lazy(() => import('./features/evaluation/BacaanSe
 const BacaanEvaluatePage = React.lazy(() => import('./features/evaluation/BacaanEvaluatePage'));
 const DaftarPesertaPage = React.lazy(() => import('./features/students/DaftarPesertaPage'));
 const StudentDetailPage = React.lazy(() => import('./features/students/StudentDetailPage'));
+const LoginPage = React.lazy(() => import('./features/auth/LoginPage'));
 
 export default function App() {
   const [darkMode, toggleDarkMode] = useDarkMode();
@@ -22,6 +23,31 @@ export default function App() {
   const [view, setView] = useState('main'); // main, select, evaluate, daftar-peserta, akhlak
   const [evalType, setEvalType] = useState('penyampaian'); // penyampaian, akhlak
   const [successAlert, setSuccessAlert] = useState({ show: false, message: '' });
+  
+  // Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const handleLogin = (userData) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user');
+    setCurrentTab('home');
+    setView('main');
+  };
   
   const { selectedStudents, toggleStudent, clearSelection } = useStudentSelection();
 
@@ -34,7 +60,7 @@ export default function App() {
   // Render correct view based on state
   const renderCurrentView = () => {
     if (currentTab === 'stats') return <StatsPage />;
-    if (currentTab === 'account') return <AccountPage darkMode={darkMode} toggleDarkMode={toggleDarkMode} />;
+    if (currentTab === 'account') return <AccountPage darkMode={darkMode} toggleDarkMode={toggleDarkMode} user={user} onLogout={handleLogout} />;
     
     // Home tab flow
     if (view === 'daftar-peserta') {
@@ -125,11 +151,21 @@ export default function App() {
     return <HomePage setView={setView} setEvalType={setEvalType} />;
   };
 
+  if (!isAuthenticated) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-emerald-900 flex items-center justify-center text-white font-bold">Loading...</div>}>
+        <LoginPage onLogin={handleLogin} />
+      </Suspense>
+    );
+  }
+
   return (
     <AppLayout 
       view={view} 
       currentTab={currentTab} 
       onTabChange={handleTabChange}
+      user={user}
+      onLogout={handleLogout}
     >
       {renderCurrentView()}
       <SuccessAlert 
