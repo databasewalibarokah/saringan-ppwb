@@ -1,24 +1,46 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import GlassCard from '../../components/GlassCard';
 import Button from '../../components/Button';
+import { api } from '../../services/api';
 
-const LoginPage = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
+const LoginPage = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const result = await api.post('/auth/login-credential', { username, password });
+
+      // Determine if admin or guru
+      const isAdmin = result.user.roles.some(role => 
+        role.toLowerCase().includes('admin') || role.toLowerCase().includes('super admin')
+      );
+
+      login(result.user, result.token);
+      
+      if (isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/app');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-      onLogin({ name: 'Ust. Ahmad Muzakki', role: 'admin' });
-    }, 1500);
+    }
   };
 
   return (
@@ -49,16 +71,27 @@ const LoginPage = ({ onLogin }) => {
         </div>
 
         <GlassCard className="p-8 shadow-2xl border-white/20">
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-6 p-4 bg-rose-500/20 border border-rose-500/50 rounded-2xl text-rose-200 text-sm font-medium flex items-center gap-3"
+            >
+              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+              {error}
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-emerald-100 uppercase tracking-widest ml-1">Email / Username</label>
+              <label className="text-sm font-bold text-emerald-100 uppercase tracking-widest ml-1">Username</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-200/50 group-focus-within:text-emerald-400 transition-colors" size={20} />
                 <input 
                   type="text" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="masukkan email anda"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="masukkan username anda"
                   required
                   className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-emerald-100/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-white/10 transition-all text-lg"
                 />

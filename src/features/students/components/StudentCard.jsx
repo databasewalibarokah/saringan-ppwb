@@ -7,8 +7,12 @@ import GlassCard from '../../../components/GlassCard';
  * Supports multi-select checkbox behavior.
  */
 const StudentCard = ({ student, isSelected, onToggleSelect }) => {
-  // Determine if the student has been evaluated (mock logic for UI demonstration)
-  const isEvaluated = student.id % 2 === 0; // Just mock data: even IDs are evaluated
+  // Map API fields if present, otherwise fallback to mock fields
+  const displayName = student.nama || student.name;
+  const displayGender = student.jenis_kelamin === 'laki-laki' || student.gender === 'L' ? 'Ikhwan' : 'Akhwat';
+  const displayCamp = student.camp || student.status_mondok || 'Reguler';
+  const displayCocard = student.cocard || student.id.substring(0, 5).toUpperCase();
+  const isEvaluated = student.telah_disimak !== undefined ? student.telah_disimak : (student.id % 2 === 0);
 
   return (
     <GlassCard 
@@ -25,26 +29,26 @@ const StudentCard = ({ student, isSelected, onToggleSelect }) => {
       <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold transition-colors 
         ${isSelected ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}
       >
-        {student.name.charAt(0)}
+        {displayName.charAt(0)}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <h3 className="text-lg font-bold text-slate-800 dark:text-white leading-tight truncate">
-          {student.name}
+          {displayName}
         </h3>
         
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {student.cocard}
+            {displayCocard}
           </span>
           <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            {student.gender === 'L' ? 'Ikhwan' : 'Akhwat'}
+            {displayGender}
           </span>
           <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            {student.camp}
+            {displayCamp}
           </span>
         </div>
 
@@ -56,7 +60,7 @@ const StudentCard = ({ student, isSelected, onToggleSelect }) => {
               : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'
             }`}
           >
-            {isEvaluated ? 'Sudah Dinilai' : 'Belum Dinilai'}
+            {isEvaluated ? 'Sudah Disimak' : 'Belum Disimak'}
           </span>
         </div>
       </div>

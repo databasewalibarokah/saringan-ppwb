@@ -9,22 +9,31 @@ export function useStudentFilter(initialStudents) {
   const [activeFilter, setActiveFilter] = useState('Semua');
 
   const filteredStudents = useMemo(() => {
+    if (!Array.isArray(initialStudents)) return [];
+    
     return initialStudents.filter((student) => {
-      // 1. Search filter (by name or cocard number)
-      const matchesSearch = 
-        student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        student.cocard.includes(searchQuery);
+      if (!student) return false;
 
-      // 2. Category filter (Camp, Gender, etc)
+      // Safely handle different field names (API vs Mock)
+      const name = (student.nama || student.name || '').toString();
+      const cocard = (student.cocard || student.id || '').toString();
+      const gender = student.jenis_kelamin === 'laki-laki' ? 'L' : (student.jenis_kelamin === 'perempuan' ? 'P' : student.gender);
+      const camp = student.camp || student.status_mondok || '';
+
+      // 1. Search filter
+      const matchesSearch = 
+        name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        cocard.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // 2. Category filter
       let matchesCategory = true;
       if (activeFilter !== 'Semua') {
         if (activeFilter === 'Putra') {
-          matchesCategory = student.gender === 'L';
+          matchesCategory = gender === 'L';
         } else if (activeFilter === 'Putri') {
-          matchesCategory = student.gender === 'P';
+          matchesCategory = gender === 'P';
         } else {
-          // Assume the filter matches the camp name entirely (e.g., "Camp A")
-          matchesCategory = student.camp === activeFilter;
+          matchesCategory = camp === activeFilter;
         }
       }
 

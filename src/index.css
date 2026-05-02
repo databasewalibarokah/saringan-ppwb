@@ -39,6 +39,24 @@
   animation: slideInFromBottom 0.3s ease-out both;
 }
 
+@keyframes slideUpFade {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.row-animate {
+  animation: slideUpFade 0.35s ease-out both;
+}
+
+.card-animate {
+  animation: scaleIn 0.3s ease-out both;
+}
+
 /* Range slider accent color for cross-browser support */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;

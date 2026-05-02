@@ -27,9 +27,14 @@ export const INITIAL_SCORES = {
 };
 
 export const BACAAN_INITIAL_STATE = {
-  passed: null, // null = unrated, true = lulus, false = tidak lulus
+  nilai: null, // null, 'lulus', 'tidak_lulus'
+  materi: '',
   note: '',
   teacherProxy: '',
+  kekurangan_tajwid: [],
+  kekurangan_khusus: [],
+  kekurangan_keserasian: [],
+  kekurangan_kelancaran: [],
 };
 
 export const FILTER_OPTIONS = ['Semua', 'Camp A', 'Camp B', 'Putra', 'Putri'];

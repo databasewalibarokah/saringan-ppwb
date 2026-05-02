@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, CheckCircle, User, Award, MessageSquare } from 'lucide-react';
+import { Calendar, CheckCircle, User, Award, MessageSquare, XCircle, Save } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
@@ -35,14 +35,81 @@ const AkhlakPage = ({
     }));
   };
 
-  const handleSubmit = () => {
-    onSubmit(notes);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/penilaian-akhlak';
+      
+      for (const student of selectedStudents) {
+        const note = notes[student.id];
+        
+        if (!note || note.trim() === '') {
+            throw new Error(`Catatan untuk ${student.nama || student.name || 'S'} tidak boleh kosong.`);
+        }
+        
+        const payload = {
+          peserta_id: student.id,
+          catatan: note.trim()
+        };
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Gagal menyimpan penilaian untuk ${student.nama || student.name || 'S'}`);
+        }
+      }
+
+      setSubmitStatus({ type: 'success', message: 'Semua penilaian akhlak berhasil disimpan!' });
+      setTimeout(() => {
+        onSubmit(notes);
+      }, 1500);
+    } catch (err) {
+      setSubmitStatus({ type: 'error', message: err.message });
+      console.error('Submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <SwipeToBackWrapper onBack={onBack}>
       <div className="pb-32 max-w-3xl mx-auto">
         <PageHeader title="Penilaian Akhlak" onBack={onBack} />
+
+        {/* Status Alert */}
+        <AnimatePresence>
+          {submitStatus && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${
+                submitStatus.type === 'success' 
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' 
+                  : 'bg-rose-50 border-rose-500 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
+              }`}
+            >
+              {submitStatus.type === 'success' ? <CheckCircle size={24} /> : <XCircle size={24} />}
+              {submitStatus.message}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Selected Students Tabs */}
         <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mb-4">
@@ -65,7 +132,7 @@ const AkhlakPage = ({
                     ? 'bg-amber-500 text-white' 
                     : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'
                  }`}>
-                   {student.name.charAt(0)}
+                   {(student.nama || student.name || 'S').charAt(0)}
                    {isDone && (
                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in">
                        <CheckCircle size={10} className="text-white" />
@@ -75,7 +142,7 @@ const AkhlakPage = ({
                  <div className="overflow-hidden flex-1">
                    <div className="flex justify-between items-start mb-1">
                      <h4 className={`font-bold truncate ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                       {student.name}
+                       {student.nama || student.name}
                      </h4>
                      {isDone ? (
                        <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Sudah</span>
@@ -104,10 +171,10 @@ const AkhlakPage = ({
               <div className="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-700 pb-3">
                 <div className="flex items-center gap-2">
                   <Award className="text-amber-500" size={24} />
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Form: {currentStudent.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Form: {currentStudent.nama || currentStudent.name}</h3>
                 </div>
                 <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                  {currentStudent.camp}
+                  {currentStudent.status_mondok || currentStudent.camp || 'Reguler'}
                 </span>
               </div>
               
@@ -121,7 +188,7 @@ const AkhlakPage = ({
                     rows="6" 
                     value={currentNote}
                     onChange={(e) => handleNoteChange(e.target.value)}
-                    placeholder={`Tuliskan catatan khusus untuk ${currentStudent.name}...`}
+                    placeholder={`Tuliskan catatan khusus untuk ${currentStudent.nama || currentStudent.name}...`}
                     className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-slate-800 dark:text-white resize-none text-lg leading-relaxed placeholder:text-slate-400 shadow-inner"
                   ></textarea>
                 </div>
@@ -177,11 +244,30 @@ const AkhlakPage = ({
                 ))}
               </div>
             </div>
-            <Button onClick={handleSubmit} colorClass="amber" className="flex-1">
-              <CheckCircle size={22} />
-              Simpan Semua
+            <Button 
+              onClick={handleSubmit} 
+              colorClass="amber" 
+              className={`flex-1 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={isSubmitting || selectedStudents.some(s => !notes[s.id]?.trim())}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={20} />
+                  <span>Simpan Semua</span>
+                </>
+              )}
             </Button>
           </div>
+          {!isSubmitting && selectedStudents.some(s => !notes[s.id]?.trim()) && (
+            <p className="text-[10px] text-center text-rose-500 font-black mt-2 uppercase tracking-tighter animate-pulse">
+              Isi semua catatan untuk menyimpan
+            </p>
+          )}
         </StickyBottomBar>
       </div>
     </SwipeToBackWrapper>

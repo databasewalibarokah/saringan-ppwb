@@ -3,7 +3,7 @@ import { Users, Clock, BookOpen, Star } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import MenuLink from '../../components/MenuLink';
 
-const HomePage = ({ setView, setEvalType }) => {
+const HomePage = ({ onNavigate }) => {
   return (
     <div className="pb-24 animate-in fade-in duration-500">
       <div className="mb-8">
@@ -37,8 +37,7 @@ const HomePage = ({ setView, setEvalType }) => {
           title="Nilai Penyampaian"
           subtitle="Makna, Keterangan, dsb"
           onClick={() => {
-            setEvalType('penyampaian');
-            setView('select');
+            onNavigate('select', 'penyampaian');
           }}
         />
 
@@ -48,8 +47,7 @@ const HomePage = ({ setView, setEvalType }) => {
           title="Nilai Bacaan"
           subtitle="Tajwid, Kelancaran, dsb"
           onClick={() => {
-            setEvalType('bacaan');
-            setView('select');
+            onNavigate('select', 'bacaan');
           }}
         />
         
@@ -59,8 +57,7 @@ const HomePage = ({ setView, setEvalType }) => {
           title="Nilai Akhlak"
           subtitle="Adab dan Prilaku Santri"
           onClick={() => {
-            setEvalType('akhlak');
-            setView('select');
+            onNavigate('select', 'akhlak');
           }}
         />
 
@@ -69,7 +66,7 @@ const HomePage = ({ setView, setEvalType }) => {
           colorClass="blue"
           title="Daftar Peserta"
           subtitle="Lihat seluruh data santri"
-          onClick={() => setView('daftar-peserta')} 
+          onClick={() => onNavigate('daftar-peserta')} 
         />
       </div>
     </div>

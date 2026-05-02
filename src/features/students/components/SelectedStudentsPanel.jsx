@@ -17,7 +17,7 @@ const SelectedStudentsPanel = ({ selectedStudents, onStartEvaluation }) => {
               key={i} 
               className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 border-2 border-white dark:border-slate-800 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-400 shadow-sm"
             >
-              {s.name.charAt(0)}
+              {(s.nama || s.name || 'S').charAt(0)}
             </div>
           ))}
           {selectedStudents.length > 3 && (
