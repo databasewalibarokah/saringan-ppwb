@@ -1,8 +1,10 @@
 import React, { useState, Suspense } from 'react';
+import { useSelector } from 'react-redux';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useStudentSelection } from './hooks/useStudentSelection';
 import AppLayout from './components/Layout/AppLayout';
 import SuccessAlert from './components/SuccessAlert';
+import LoginPage from './features/auth/LoginPage';
 
 // Lazy load feature pages for better initial bundle size
 const HomePage = React.lazy(() => import('./features/home/HomePage'));
@@ -15,6 +17,7 @@ const DaftarPesertaPage = React.lazy(() => import('./features/students/DaftarPes
 const StudentDetailPage = React.lazy(() => import('./features/students/StudentDetailPage'));
 
 export default function App() {
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [darkMode, toggleDarkMode] = useDarkMode();
   const [currentTab, setCurrentTab] = useState('home'); // home, stats, account
   const [view, setView] = useState('main'); // main, select, evaluate, daftar-peserta, akhlak
@@ -22,6 +25,11 @@ export default function App() {
   const [successAlert, setSuccessAlert] = useState({ show: false, message: '' });
   
   const { selectedStudents, toggleStudent, clearSelection } = useStudentSelection();
+
+  // If not authenticated, show the login page
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   // Handle Tab changes
   const handleTabChange = (tabKey) => {

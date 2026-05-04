@@ -7,8 +7,20 @@ import GlassCard from '../../../components/GlassCard';
  * Supports multi-select checkbox behavior.
  */
 const StudentCard = ({ student, isSelected, onToggleSelect }) => {
-  // Determine if the student has been evaluated (mock logic for UI demonstration)
-  const isEvaluated = student.id % 2 === 0; // Just mock data: even IDs are evaluated
+  // Use status from API
+  const statusLabel = student.status || 'Belum Dinilai';
+  const statusColor = student.statusColor || 'amber';
+
+  // Helper for color classes
+  const getColorClasses = (color) => {
+    switch (color) {
+      case 'success': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400';
+      case 'danger': return 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400';
+      case 'primary': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400';
+      case 'warning': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400';
+      default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+    }
+  };
 
   return (
     <GlassCard 
@@ -25,7 +37,7 @@ const StudentCard = ({ student, isSelected, onToggleSelect }) => {
       <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold transition-colors 
         ${isSelected ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}
       >
-        {student.name.charAt(0)}
+        {(student.name || '?').charAt(0)}
       </div>
 
       {/* Content */}
@@ -38,25 +50,30 @@ const StudentCard = ({ student, isSelected, onToggleSelect }) => {
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {student.cocard}
           </span>
-          <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {student.gender === 'L' ? 'Ikhwan' : 'Akhwat'}
-          </span>
-          <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {student.camp}
-          </span>
+          {student.gender && (
+            <>
+              <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {student.gender === 'L' ? 'Ikhwan' : 'Akhwat'}
+              </span>
+            </>
+          )}
+          {student.camp && (
+            <>
+              <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {student.camp}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Evaluation Status Badge */}
         <div className="mt-2">
           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide
-            ${isEvaluated 
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' 
-              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400'
-            }`}
+            ${getColorClasses(statusColor)}`}
           >
-            {isEvaluated ? 'Sudah Dinilai' : 'Belum Dinilai'}
+            {statusLabel}
           </span>
         </div>
       </div>

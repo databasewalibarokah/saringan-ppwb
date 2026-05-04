@@ -9,13 +9,16 @@ export function useStudentFilter(initialStudents) {
   const [activeFilter, setActiveFilter] = useState('Semua');
 
   const filteredStudents = useMemo(() => {
+    if (!initialStudents) return [];
+    
     return initialStudents.filter((student) => {
-      // 1. Search filter (by name or cocard number)
+      // 1. Search filter (by name or santriId/cocard)
       const matchesSearch = 
-        student.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        student.cocard.includes(searchQuery);
+        (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (student.cocard || '').includes(searchQuery) ||
+        (student.santriId || '').includes(searchQuery);
 
-      // 2. Category filter (Camp, Gender, etc)
+      // 2. Category filter (Gender, etc)
       let matchesCategory = true;
       if (activeFilter !== 'Semua') {
         if (activeFilter === 'Putra') {
@@ -23,8 +26,8 @@ export function useStudentFilter(initialStudents) {
         } else if (activeFilter === 'Putri') {
           matchesCategory = student.gender === 'P';
         } else {
-          // Assume the filter matches the camp name entirely (e.g., "Camp A")
-          matchesCategory = student.camp === activeFilter;
+          // Fallback for camp or other filters if they exist
+          matchesCategory = student.camp === activeFilter || student.status === activeFilter;
         }
       }
 
