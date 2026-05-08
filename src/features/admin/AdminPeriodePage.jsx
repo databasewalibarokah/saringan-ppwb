@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
   Plus, Calendar, CheckCircle, Edit2, Trash2,
   Loader2, AlertCircle, RefreshCw, Save, X,
-  ToggleLeft, ToggleRight, ArrowLeft, Clock
+  ToggleLeft, ToggleRight, ArrowLeft, Clock, Users
 } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
+import { AuthContext } from '../../contexts/AuthContext';
 
 /* ─── Skeleton card ─── */
 const SkeletonCard = ({ delay = 0 }) => (
@@ -41,25 +42,33 @@ const inputClass =
 
 /* ─── Main Component ─── */
 const AdminPeriodePage = ({ onBack }) => {
+  const { token, user } = useContext(AuthContext);
   const [periodes, setPeriodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, type: 'primary' });
   const [editingPeriode, setEditingPeriode] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  const [formData, setFormData] = useState({ nama: '', mulai: '', selesai: '', aktif: false });
+  const [formData, setFormData] = useState({ 
+    month: new Date().getMonth() + 1, 
+    year: new Date().getFullYear() 
+  });
 
   useEffect(() => { setIsMounted(true); }, []);
 
   const fetchPeriodes = useCallback(async () => {
+    if (!token) return;
     setIsLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token') || '';
       const response = await fetch('https://sistem-ponpes-jagat.test/api/saringan/periode', {
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Accept': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        }
       });
       if (!response.ok) throw new Error('Gagal mengambil data periode');
       const result = await response.json();
@@ -69,39 +78,52 @@ const AdminPeriodePage = ({ onBack }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => { fetchPeriodes(); }, [fetchPeriodes]);
 
-  const handleOpenModal = (periode = null) => {
-    if (periode) {
-      setEditingPeriode(periode);
-      setFormData({ nama: periode.nama || '', mulai: periode.mulai || '', selesai: periode.selesai || '', aktif: periode.aktif || false });
-    } else {
-      setEditingPeriode(null);
-      setFormData({ nama: '', mulai: '', selesai: '', aktif: false });
-    }
+  const handleOpenModal = () => {
+    setEditingPeriode(null);
+    setFormData({ 
+      month: new Date().getMonth() + 1, 
+      year: new Date().getFullYear() 
+    });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) return;
+
+    const ponpes_id = user?.ponpes_aktif?.[0]?.id;
+    if (!ponpes_id) {
+      setError('ID Ponpes tidak ditemukan. Silakan login ulang.');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('token') || '';
-      const method = editingPeriode ? 'PUT' : 'POST';
-      const url = editingPeriode
-        ? `https://sistem-ponpes-jagat.test/api/saringan/periode/${editingPeriode.id}`
-        : 'https://sistem-ponpes-jagat.test/api/saringan/periode';
-      const response = await fetch(url, {
-        method,
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(formData),
+      const kode_periode = `${formData.year}${String(formData.month).padStart(2, '0')}`;
+      
+      const response = await fetch('https://sistem-ponpes-jagat.test/api/saringan/periode', {
+        method: 'POST',
+        headers: { 
+          'Accept': 'application/json', 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          kode_periode,
+          ponpes_id
+        }),
       });
+
+      const result = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Gagal menyimpan periode');
+        throw new Error(result.message || 'Gagal menyimpan periode');
       }
+
       setIsModalOpen(false);
       fetchPeriodes();
     } catch (err) {
@@ -111,40 +133,62 @@ const AdminPeriodePage = ({ onBack }) => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus periode ini?')) return;
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem('token') || '';
-      const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${id}`, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Gagal menghapus periode');
-      fetchPeriodes();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDelete = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Hapus Periode',
+      message: 'Apakah Anda yakin ingin menghapus periode ini? Tindakan ini tidak dapat dibatalkan.',
+      type: 'danger',
+      onConfirm: async () => {
+        setIsLoading(true);
+        try {
+          const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${id}`, {
+            method: 'DELETE',
+            headers: { 
+              'Accept': 'application/json', 
+              'Authorization': `Bearer ${token}` 
+            },
+          });
+          if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.message || 'Gagal menghapus periode');
+          }
+          fetchPeriodes();
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
-  const handleToggleAktif = async (periode) => {
+  const handleToggleAktif = (periode) => {
     if (periode.aktif) return;
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem('token') || '';
-      const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${periode.id}/aktifkan`, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Gagal mengaktifkan periode');
-      fetchPeriodes();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Aktifkan Periode',
+      message: `Apakah Anda yakin ingin mengaktifkan periode ${periode.label}? Periode lain yang sedang aktif akan otomatis dinonaktifkan.`,
+      type: 'success',
+      onConfirm: async () => {
+        setIsLoading(true);
+        try {
+          const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${periode.id}/toggle-aktif`, {
+            method: 'PATCH',
+            headers: { 
+              'Accept': 'application/json', 
+              'Authorization': `Bearer ${token}` 
+            },
+          });
+          if (!response.ok) throw new Error('Gagal mengaktifkan periode');
+          fetchPeriodes();
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
   const periodeAktif = periodes.find(p => p.aktif);
@@ -196,10 +240,10 @@ const AdminPeriodePage = ({ onBack }) => {
           </div>
           <div>
             <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-0.5">Periode Aktif Saat Ini</p>
-            <p className="text-xl font-black leading-tight">{periodeAktif.nama}</p>
+            <p className="text-xl font-black leading-tight">{periodeAktif.label}</p>
             <p className="text-sm font-semibold opacity-80 mt-0.5 flex items-center gap-1.5">
               <Clock size={13} />
-              {periodeAktif.mulai} s/d {periodeAktif.selesai}
+              Kode: {periodeAktif.kode_periode} • {periodeAktif.jumlah_peserta} Peserta
             </p>
           </div>
         </div>
@@ -266,17 +310,24 @@ const AdminPeriodePage = ({ onBack }) => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{periode.nama}</h3>
+                      <h3 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{periode.label}</h3>
                       {periode.aktif && (
                         <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
                           <CheckCircle size={10} /> Aktif
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
-                      <Clock size={13} />
-                      {periode.mulai} — {periode.selesai}
-                    </p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <Clock size={13} />
+                        {periode.kode_periode}
+                      </p>
+                      <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <Users size={13} />
+                        {periode.jumlah_peserta} Peserta
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -338,9 +389,9 @@ const AdminPeriodePage = ({ onBack }) => {
             <div className="flex justify-between items-center p-6 border-b-2 border-slate-100 dark:border-slate-800">
               <div>
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white">
-                  {editingPeriode ? 'Edit Periode' : 'Periode Baru'}
+                  Periode Baru
                 </h3>
-                <p className="text-sm font-semibold text-slate-400 mt-0.5">Isi detail periode saringan</p>
+                <p className="text-sm font-semibold text-slate-400 mt-0.5">Pilih bulan dan tahun saringan</p>
               </div>
               <button
                 onClick={() => !isSaving && setIsModalOpen(false)}
@@ -352,36 +403,44 @@ const AdminPeriodePage = ({ onBack }) => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <FormField label="Nama Periode">
-                <input
-                  type="text"
-                  required
-                  value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  placeholder="Contoh: Gelombang 1 2026"
-                  className={inputClass}
-                />
-              </FormField>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Bulan">
+                  <select
+                    required
+                    value={formData.month}
+                    onChange={(e) => setFormData({ ...formData, month: parseInt(e.target.value) })}
+                    className={inputClass}
+                  >
+                    {[
+                      { v: 1, n: 'Januari' }, { v: 2, n: 'Februari' }, { v: 3, n: 'Maret' },
+                      { v: 4, n: 'April' }, { v: 5, n: 'Mei' }, { v: 6, n: 'Juni' },
+                      { v: 7, n: 'Juli' }, { v: 8, n: 'Agustus' }, { v: 9, n: 'September' },
+                      { v: 10, n: 'Oktober' }, { v: 11, n: 'November' }, { v: 12, n: 'Desember' }
+                    ].map(m => (
+                      <option key={m.v} value={m.v}>{m.n}</option>
+                    ))}
+                  </select>
+                </FormField>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Tanggal Mulai">
-                  <input
-                    type="date"
+                <FormField label="Tahun">
+                  <select
                     required
-                    value={formData.mulai}
-                    onChange={(e) => setFormData({ ...formData, mulai: e.target.value })}
+                    value={formData.year}
+                    onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
                     className={inputClass}
-                  />
+                  >
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
                 </FormField>
-                <FormField label="Tanggal Selesai">
-                  <input
-                    type="date"
-                    required
-                    value={formData.selesai}
-                    onChange={(e) => setFormData({ ...formData, selesai: e.target.value })}
-                    className={inputClass}
-                  />
-                </FormField>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Preview Kode Periode</p>
+                <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  {formData.year}{String(formData.month).padStart(2, '0')}
+                </p>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -403,6 +462,51 @@ const AdminPeriodePage = ({ onBack }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── Confirmation Modal ── */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+          />
+          <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-slate-100 dark:border-slate-800 p-8 text-center card-animate">
+            <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-6 ${
+              confirmModal.type === 'danger' ? 'bg-rose-100 text-rose-600' : 
+              confirmModal.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 
+              'bg-blue-100 text-blue-600'
+            }`}>
+              {confirmModal.type === 'danger' ? <Trash2 size={40} /> : 
+               confirmModal.type === 'success' ? <CheckCircle size={40} /> : 
+               <AlertCircle size={40} />}
+            </div>
+            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{confirmModal.title}</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">{confirmModal.message}</p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                className="flex-1 py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+              >
+                Batal
+              </button>
+              <button
+                onClick={async () => {
+                  const onConfirm = confirmModal.onConfirm;
+                  setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                  if (onConfirm) await onConfirm();
+                }}
+                className={`flex-1 py-4 rounded-2xl font-bold text-white transition-all shadow-lg ${
+                  confirmModal.type === 'danger' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' : 
+                  confirmModal.type === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 
+                  'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                }`}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
           </div>
         </div>
       )}

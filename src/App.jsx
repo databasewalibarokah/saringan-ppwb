@@ -13,6 +13,7 @@ const AdminDashboard = React.lazy(() => import('./features/admin/dashboard/Admin
 const StudentsPage = React.lazy(() => import('./features/admin/students/StudentsPage'));
 const ReportsPage = React.lazy(() => import('./features/admin/reports/ReportsPage'));
 const UsersPage = React.lazy(() => import('./features/admin/users/UsersPage'));
+const AdminPenyampaianPage = React.lazy(() => import('./features/admin/evaluations/AdminPenyampaianPage'));
 const AdminPeriodePage = React.lazy(() => import('./features/admin/AdminPeriodePage'));
 
 const PageLoader = () => (
@@ -66,14 +67,7 @@ export default function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="murid" element={<StudentsPage />} />
-          <Route
-            path="penilaian"
-            element={
-              <div className="p-10 bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 text-center font-bold text-slate-400 italic">
-                Fitur Penilaian Detail Sedang Dalam Pengembangan
-              </div>
-            }
-          />
+          <Route path="penilaian" element={<AdminPenyampaianPage />} />
           <Route path="laporan" element={<ReportsPage />} />
           <Route path="periode" element={<AdminPeriodePage onBack={() => {}} />} />
           <Route
