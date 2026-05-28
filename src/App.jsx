@@ -7,6 +7,7 @@ import AdminLayout from './components/Layout/AdminLayout';
 // Lazy load feature pages
 const LoginPage = React.lazy(() => import('./features/auth/LoginPage'));
 const GuruApp = React.lazy(() => import('./pages/app/GuruApp'));
+const SelectPonpesPage = React.lazy(() => import('./pages/SelectPonpesPage'));
 
 // Admin Panel Features
 const AdminDashboard = React.lazy(() => import('./features/admin/dashboard/AdminDashboard'));
@@ -34,7 +35,22 @@ const AdminLayoutWrapper = () => (
 );
 
 export default function App() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, selectedPonpesId, user, accessiblePonpes } = useAuth();
+
+  const getAuthenticatedRedirectPath = () => {
+    // Superadmin bypasses ponpes selection and goes straight to dashboard
+    if (user?.is_super_admin) {
+      return '/admin/dashboard';
+    }
+
+    const needsToSelect = !selectedPonpesId && accessiblePonpes?.length > 1;
+    if (needsToSelect) {
+      return '/select-ponpes';
+    }
+    return isAdmin ? '/admin/dashboard' : '/app';
+  };
+
+  const authRedirectPath = getAuthenticatedRedirectPath();
 
   return (
     <Suspense fallback={<PageLoader />}>
@@ -44,9 +60,21 @@ export default function App() {
           path="/login"
           element={
             isAuthenticated ? (
-              <Navigate to={isAdmin ? '/admin/dashboard' : '/app'} replace />
+              <Navigate to={authRedirectPath} replace />
             ) : (
               <LoginPage />
+            )
+          }
+        />
+
+        {/* Select Ponpes Route */}
+        <Route
+          path="/select-ponpes"
+          element={
+            isAuthenticated ? (
+              <SelectPonpesPage />
+            ) : (
+              <Navigate to="/login" replace />
             )
           }
         />
@@ -85,17 +113,16 @@ export default function App() {
           path="/"
           element={
             isAuthenticated ? (
-              <Navigate to={isAdmin ? '/admin/dashboard' : '/app'} replace />
+              <Navigate to={authRedirectPath} replace />
             ) : (
               <Navigate to="/login" replace />
             )
           }
         />
 
-        {/* 404 fallback */}
         <Route
           path="*"
-          element={<Navigate to={isAuthenticated ? (isAdmin ? '/admin/dashboard' : '/app') : '/login'} replace />}
+          element={<Navigate to={isAuthenticated ? authRedirectPath : '/login'} replace />}
         />
       </Routes>
     </Suspense>

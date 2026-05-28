@@ -25,7 +25,7 @@ import Modal from '../../../components/ui/Modal';
 import toast from 'react-hot-toast';
 
 const StudentsPage = () => {
-  const { token } = useAuth();
+  const { token, selectedPonpesId } = useAuth();
   const [students, setStudents] = useState([]);
   const [periods, setPeriods] = useState([]);
   const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
@@ -139,10 +139,12 @@ const StudentsPage = () => {
           <p className="text-slate-500 font-medium">Kelola database peserta saringan PPWB</p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={handleShowImportModal} className="bg-white dark:bg-slate-800 text-emerald-600 border-2 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shadow-none">
-            <Database size={18} />
-            Ambil Santri Saringan
-          </Button>
+          {selectedPonpesId !== 'all' && (
+            <Button onClick={handleShowImportModal} className="bg-white dark:bg-slate-800 text-emerald-600 border-2 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shadow-none">
+              <Database size={18} />
+              Ambil Santri Saringan
+            </Button>
+          )}
           <Button onClick={() => { setSelectedStudent(null); setIsModalOpen(true); }} className="bg-emerald-600 hover:bg-emerald-500">
             <UserPlus size={18} />
             Tambah Murid
@@ -173,7 +175,7 @@ const StudentsPage = () => {
               <option value="" disabled>Pilih Periode</option>
               {periods.map(p => (
                 <option key={p.id} value={p.id}>
-                  {p.label} {p.aktif ? '(Aktif)' : ''}
+                  {selectedPonpesId === 'all' ? `[${p.ponpes_nama}] ` : ''}{p.label} {p.aktif ? '(Aktif)' : ''}
                 </option>
               ))}
             </select>
@@ -201,7 +203,7 @@ const StudentsPage = () => {
           <p className="text-slate-500 font-bold italic">Tidak ada data murid ditemukan</p>
         </div>
       ) : (
-        <Table headers={['Nama', 'Cocard', 'L/P', 'Status', 'Aksi']}>
+        <Table headers={selectedPonpesId === 'all' ? ['Nama', 'Cocard', 'Pondok', 'L/P', 'Status', 'Aksi'] : ['Nama', 'Cocard', 'L/P', 'Status', 'Aksi']}>
           {filteredStudents.map((student) => (
             <TableRow key={student.id}>
               <TableCell>
@@ -216,6 +218,14 @@ const StudentsPage = () => {
                 </div>
               </TableCell>
               <TableCell><span className="font-black text-slate-500">{student.cocard}</span></TableCell>
+              
+              {selectedPonpesId === 'all' && (
+                <TableCell>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md whitespace-nowrap">
+                    {student.ponpes_nama || '-'}
+                  </span>
+                </TableCell>
+              )}
               <TableCell>
                 <Badge variant={student.jenis_kelamin?.toLowerCase().startsWith('l') ? 'blue' : 'rose'}>
                   {student.jenis_kelamin?.toUpperCase().charAt(0) || 'N/A'}

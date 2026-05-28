@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
   Plus, Calendar, CheckCircle, Edit2, Trash2,
   Loader2, AlertCircle, RefreshCw, Save, X,
-  ToggleLeft, ToggleRight, ArrowLeft, Clock, Users
+  ToggleLeft, ToggleRight, ArrowLeft, Clock, Users, Building2
 } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -42,7 +42,7 @@ const inputClass =
 
 /* ─── Main Component ─── */
 const AdminPeriodePage = ({ onBack }) => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, selectedPonpesId } = useContext(AuthContext);
   const [periodes, setPeriodes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,9 +52,9 @@ const AdminPeriodePage = ({ onBack }) => {
   const [editingPeriode, setEditingPeriode] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  const [formData, setFormData] = useState({ 
-    month: new Date().getMonth() + 1, 
-    year: new Date().getFullYear() 
+  const [formData, setFormData] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
   });
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -65,9 +65,10 @@ const AdminPeriodePage = ({ onBack }) => {
     setError(null);
     try {
       const response = await fetch('https://sistem-ponpes-jagat.test/api/saringan/periode', {
-        headers: { 
-          'Accept': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Ponpes-Id': selectedPonpesId
         }
       });
       if (!response.ok) throw new Error('Gagal mengambil data periode');
@@ -84,9 +85,9 @@ const AdminPeriodePage = ({ onBack }) => {
 
   const handleOpenModal = () => {
     setEditingPeriode(null);
-    setFormData({ 
-      month: new Date().getMonth() + 1, 
-      year: new Date().getFullYear() 
+    setFormData({
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear()
     });
     setIsModalOpen(true);
   };
@@ -95,37 +96,36 @@ const AdminPeriodePage = ({ onBack }) => {
     e.preventDefault();
     if (!token) return;
 
-    const ponpes_id = user?.ponpes_aktif?.[0]?.id;
-    if (!ponpes_id) {
-      setError('ID Ponpes tidak ditemukan. Silakan login ulang.');
+    if (!selectedPonpesId) {
+      setError('ID Ponpes tidak ditemukan. Silakan pilih pondok pesantren.');
       return;
     }
 
     setIsSaving(true);
     try {
       const kode_periode = `${formData.year}${String(formData.month).padStart(2, '0')}`;
-      
+
       const response = await fetch('https://sistem-ponpes-jagat.test/api/saringan/periode', {
         method: 'POST',
-        headers: { 
-          'Accept': 'application/json', 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Ponpes-Id': selectedPonpesId
         },
         body: JSON.stringify({
           kode_periode,
-          ponpes_id
+          ponpes_id: selectedPonpesId
         }),
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(result.message || 'Gagal menyimpan periode');
+        throw new Error(result.message || 'Gagal menyimpann periode');
       }
 
       setIsModalOpen(false);
-      fetchPeriodes();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -144,9 +144,10 @@ const AdminPeriodePage = ({ onBack }) => {
         try {
           const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${id}`, {
             method: 'DELETE',
-            headers: { 
-              'Accept': 'application/json', 
-              'Authorization': `Bearer ${token}` 
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Ponpes-Id': selectedPonpesId
             },
           });
           if (!response.ok) {
@@ -175,9 +176,10 @@ const AdminPeriodePage = ({ onBack }) => {
         try {
           const response = await fetch(`https://sistem-ponpes-jagat.test/api/saringan/periode/${periode.id}/toggle-aktif`, {
             method: 'PATCH',
-            headers: { 
-              'Accept': 'application/json', 
-              'Authorization': `Bearer ${token}` 
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'X-Ponpes-Id': selectedPonpesId
             },
           });
           if (!response.ok) throw new Error('Gagal mengaktifkan periode');
@@ -219,13 +221,15 @@ const AdminPeriodePage = ({ onBack }) => {
           >
             <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
           </button>
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-base shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 active:scale-95 transition-all duration-150"
-          >
-            <Plus size={20} />
-            Periode Baru
-          </button>
+          {selectedPonpesId !== 'all' && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-base shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 active:scale-95 transition-all duration-150"
+            >
+              <Plus size={20} />
+              Periode Baru
+            </button>
+          )}
         </div>
       </div>
 
@@ -241,9 +245,16 @@ const AdminPeriodePage = ({ onBack }) => {
           <div>
             <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-0.5">Periode Aktif Saat Ini</p>
             <p className="text-xl font-black leading-tight">{periodeAktif.label}</p>
-            <p className="text-sm font-semibold opacity-80 mt-0.5 flex items-center gap-1.5">
+            <p className="text-sm font-semibold opacity-80 mt-0.5 flex flex-wrap items-center gap-1.5">
               <Clock size={13} />
               Kode: {periodeAktif.kode_periode} • {periodeAktif.jumlah_peserta} Peserta
+              {selectedPonpesId === 'all' && (
+                <>
+                  <span className="opacity-50">•</span>
+                  <Building2 size={13} className="ml-1" />
+                  {periodeAktif.ponpes_nama || '-'}
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -292,20 +303,18 @@ const AdminPeriodePage = ({ onBack }) => {
             {periodes.map((periode, i) => (
               <div
                 key={periode.id}
-                className={`row-animate flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border-2 transition-all duration-200 hover:shadow-md ${
-                  periode.aktif
-                    ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400 dark:border-emerald-600 shadow-md shadow-emerald-500/10'
-                    : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'
-                }`}
+                className={`row-animate flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border-2 transition-all duration-200 hover:shadow-md ${periode.aktif
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400 dark:border-emerald-600 shadow-md shadow-emerald-500/10'
+                  : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'
+                  }`}
                 style={{ animationDelay: `${i * 70}ms` }}
               >
                 {/* Left: icon + info */}
                 <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                    periode.aktif
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
-                  }`}>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${periode.aktif
+                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+                    }`}>
                     <Calendar size={26} />
                   </div>
                   <div>
@@ -317,7 +326,7 @@ const AdminPeriodePage = ({ onBack }) => {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <Clock size={13} />
                         {periode.kode_periode}
@@ -327,6 +336,15 @@ const AdminPeriodePage = ({ onBack }) => {
                         <Users size={13} />
                         {periode.jumlah_peserta} Peserta
                       </p>
+                      {selectedPonpesId === 'all' && (
+                        <>
+                          <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-md">
+                            <Building2 size={12} />
+                            {periode.ponpes_nama || '-'}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -338,11 +356,10 @@ const AdminPeriodePage = ({ onBack }) => {
                     onClick={() => handleToggleAktif(periode)}
                     disabled={periode.aktif}
                     title={periode.aktif ? 'Periode ini sudah aktif' : 'Aktifkan periode ini'}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 ${
-                      periode.aktif
-                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 cursor-default'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 active:scale-95'
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 ${periode.aktif
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 cursor-default'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 active:scale-95'
+                      }`}
                   >
                     {periode.aktif ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                     <span className="hidden sm:inline">{periode.aktif ? 'Aktif' : 'Aktifkan'}</span>
@@ -468,23 +485,22 @@ const AdminPeriodePage = ({ onBack }) => {
       {/* ── Confirmation Modal ── */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
           />
           <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-slate-100 dark:border-slate-800 p-8 text-center card-animate">
-            <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-6 ${
-              confirmModal.type === 'danger' ? 'bg-rose-100 text-rose-600' : 
-              confirmModal.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 
-              'bg-blue-100 text-blue-600'
-            }`}>
-              {confirmModal.type === 'danger' ? <Trash2 size={40} /> : 
-               confirmModal.type === 'success' ? <CheckCircle size={40} /> : 
-               <AlertCircle size={40} />}
+            <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-6 ${confirmModal.type === 'danger' ? 'bg-rose-100 text-rose-600' :
+              confirmModal.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
+                'bg-blue-100 text-blue-600'
+              }`}>
+              {confirmModal.type === 'danger' ? <Trash2 size={40} /> :
+                confirmModal.type === 'success' ? <CheckCircle size={40} /> :
+                  <AlertCircle size={40} />}
             </div>
             <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{confirmModal.title}</h3>
             <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">{confirmModal.message}</p>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
@@ -498,11 +514,10 @@ const AdminPeriodePage = ({ onBack }) => {
                   setConfirmModal(prev => ({ ...prev, isOpen: false }));
                   if (onConfirm) await onConfirm();
                 }}
-                className={`flex-1 py-4 rounded-2xl font-bold text-white transition-all shadow-lg ${
-                  confirmModal.type === 'danger' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' : 
-                  confirmModal.type === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 
-                  'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
-                }`}
+                className={`flex-1 py-4 rounded-2xl font-bold text-white transition-all shadow-lg ${confirmModal.type === 'danger' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' :
+                  confirmModal.type === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' :
+                    'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                  }`}
               >
                 Ya, Lanjutkan
               </button>

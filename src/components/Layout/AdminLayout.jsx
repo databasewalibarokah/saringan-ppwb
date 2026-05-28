@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Users,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
+  X,
   Calendar,
   ShieldCheck,
   UserCircle
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
+import PonpesSwitcher from '../../components/PonpesSwitcher';
+import SuperAdminPonpesSwitcher from '../../components/SuperAdminPonpesSwitcher';
 
 const AdminLayout = ({ children }) => {
   const { user, logout, isSuperAdmin } = useAuth();
@@ -38,18 +40,28 @@ const AdminLayout = ({ children }) => {
     navigate('/login');
   };
 
+  const handleLogoutMobile = async () => {
+    setIsSidebarOpen(false);
+    await logout();
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-20">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-            <ShieldCheck size={24} />
+        <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">SARINGAN</h1>
+              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Admin Panel</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-800 dark:text-white leading-tight">SARINGAN</h1>
-            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Admin Panel</p>
-          </div>
+          {/* Ponpes Switcher */}
+          {isSuperAdmin ? <SuperAdminPonpesSwitcher /> : <PonpesSwitcher />}
         </div>
 
         <nav className="flex-1 p-4 space-y-1 mt-4">
@@ -126,16 +138,20 @@ const AdminLayout = ({ children }) => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed top-0 left-0 bottom-0 w-80 bg-white dark:bg-slate-800 z-50 lg:hidden flex flex-col shadow-2xl"
             >
-              <div className="p-6 flex items-center justify-between border-b dark:border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
-                    <ShieldCheck size={24} />
+              <div className="p-6 flex flex-col gap-4 border-b dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <h1 className="text-xl font-black text-slate-800 dark:text-white">Admin Panel</h1>
                   </div>
-                  <h1 className="text-xl font-black text-slate-800 dark:text-white">Admin Panel</h1>
+                  <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400">
+                    <X size={24} />
+                  </button>
                 </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400">
-                  <X size={24} />
-                </button>
+                {/* Ponpes Switcher */}
+                {isSuperAdmin ? <SuperAdminPonpesSwitcher /> : <PonpesSwitcher />}
               </div>
               <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                 {navigation.map((item) => {
@@ -146,8 +162,8 @@ const AdminLayout = ({ children }) => {
                       to={item.href}
                       onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-bold transition-all ${
-                        isActive 
-                          ? 'bg-emerald-500 text-white' 
+                        isActive
+                          ? 'bg-emerald-500 text-white'
                           : 'text-slate-500 dark:text-slate-400'
                       }`}
                     >
@@ -159,7 +175,7 @@ const AdminLayout = ({ children }) => {
               </nav>
               <div className="p-6 border-t dark:border-slate-700">
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutMobile}
                   className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-rose-500 hover:bg-rose-50"
                 >
                   <LogOut size={22} />

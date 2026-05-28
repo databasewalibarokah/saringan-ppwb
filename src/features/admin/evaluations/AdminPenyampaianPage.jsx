@@ -18,7 +18,7 @@ import Button from '../../../components/Button';
 import toast from 'react-hot-toast';
 
 const AdminPenyampaianPage = () => {
-  const { token } = useAuth();
+  const { token, selectedPonpesId } = useAuth();
   const [evaluations, setEvaluations] = useState([]);
   const [periods, setPeriods] = useState([]);
   const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
@@ -103,7 +103,7 @@ const AdminPenyampaianPage = () => {
               <option value="">Semua Periode</option>
               {periods.map(p => (
                 <option key={p.id} value={p.id}>
-                  {p.label} {p.aktif ? '(Aktif)' : ''}
+                  {selectedPonpesId === 'all' ? `[${p.ponpes_nama}] ` : ''}{p.label} {p.aktif ? '(Aktif)' : ''}
                 </option>
               ))}
             </select>
@@ -128,7 +128,7 @@ const AdminPenyampaianPage = () => {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm">
-          <Table headers={['Periode', 'Cocard', 'Peserta', 'L/P', 'Guru', 'Makna', 'Ket', 'Penj', 'Pemh', 'Catatan']}>
+          <Table headers={selectedPonpesId === 'all' ? ['Periode', 'Pondok', 'Cocard', 'Peserta', 'L/P', 'Guru', 'Makna', 'Ket', 'Penj', 'Pemh', 'Catatan'] : ['Periode', 'Cocard', 'Peserta', 'L/P', 'Guru', 'Makna', 'Ket', 'Penj', 'Pemh', 'Catatan']}>
             {(Array.isArray(evaluations) ? evaluations : evaluations.data || []).map((row) => (
               <TableRow key={row.id}>
                 <TableCell>
@@ -137,6 +137,13 @@ const AdminPenyampaianPage = () => {
                     {row.periode_label && <span className="text-[10px] text-slate-400 font-medium">{row.periode}</span>}
                   </div>
                 </TableCell>
+                {selectedPonpesId === 'all' && (
+                  <TableCell>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md whitespace-nowrap">
+                      {row.ponpes_nama || '-'}
+                    </span>
+                  </TableCell>
+                )}
                 <TableCell><span className="font-black text-slate-500 dark:text-slate-400">{row.cocard || '-'}</span></TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">

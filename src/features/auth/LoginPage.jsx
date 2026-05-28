@@ -23,21 +23,39 @@ const LoginPage = () => {
     
     try {
       const result = await api.post('/auth/login-credential', { username, password });
+      const { user } = result;
 
-      // Determine if admin or guru
-      const isAdmin = result.user.roles.some(role => 
-        role.toLowerCase().includes('admin') || role.toLowerCase().includes('super admin')
-      );
+      // Cek akses Saringan - Super Admin bisa akses, atau harus Guru Saringan
+      const isSuperAdmin = user.is_super_admin;
+      const isGuruSaringan = user.is_guru_saringan;
 
-      login(result.user, result.token);
-      
-      if (isAdmin) {
-        navigate('/admin/dashboard');
+      if (!isSuperAdmin && !isGuruSaringan) {
+        setError('Anda bukan Guru Saringan. Anda tidak memiliki akses ke sistem ini.');
+        return;
+      }
+
+      login(user, result.token);
+
+      // Cek apakah user memiliki lebih dari 1 ponpes akses
+      const multiPonpesAccess = user.guru_saringan_ponpes_ids?.length > 1;
+
+      if (multiPonpesAccess) {
+        // Ada lebih dari 1 ponpes, tampilkan halaman pilih ponpes
+        navigate('/select-ponpes');
       } else {
-        navigate('/app');
+        // Hanya 1 ponpes atau Super Admin, redirect langsung
+        const isAdmin = user.roles?.some(role =>
+          role.toLowerCase().includes('admin') || role.toLowerCase().includes('super admin')
+        );
+
+        if (isAdmin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/app');
+        }
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Terjadi kesalahan saat login. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }

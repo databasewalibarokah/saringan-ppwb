@@ -1,15 +1,30 @@
 const BASE_URL = 'https://sistem-ponpes-jagat.test/api';
 
-const getHeaders = (token) => ({
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-  ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-});
+const getHeaders = (token) => {
+  const headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Include X-Ponpes-Id header if user is logged in and has selected a ponpes
+  const selectedPonpesId = localStorage.getItem('selected_ponpes_id');
+  if (selectedPonpesId) {
+    headers['X-Ponpes-Id'] = selectedPonpesId;
+  }
+
+  return headers;
+};
 
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    const error = new Error(data.message || 'Something went wrong');
+    error.status = response.status;
+    throw error;
   }
   return data;
 };

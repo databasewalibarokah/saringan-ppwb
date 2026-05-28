@@ -10,6 +10,31 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPonpesId, setSelectedPonpesId] = useState(() => {
+    const saved = localStorage.getItem('selected_ponpes_id');
+    return saved !== null ? saved : null;
+  });
+
+  // Role helpers
+  const isSuperAdmin = user?.is_super_admin;
+  const isAdmin = user?.roles?.some(role => role.toLowerCase().includes('admin')) || isSuperAdmin;
+  const isGuru = user?.roles?.some(role => role.toLowerCase().includes('guru'));
+
+  // Default Super Admin to 'all' if no ponpes is selected
+  useEffect(() => {
+    if (isSuperAdmin && !selectedPonpesId && isAuthenticated) {
+      setSelectedPonpesId('all');
+    }
+  }, [isSuperAdmin, selectedPonpesId, isAuthenticated]);
+
+  // Simpan ponpes_id yang dipilih ke localStorage
+  useEffect(() => {
+    if (selectedPonpesId) {
+      localStorage.setItem('selected_ponpes_id', selectedPonpesId);
+    } else {
+      localStorage.removeItem('selected_ponpes_id');
+    }
+  }, [selectedPonpesId]);
 
   const login = useCallback((userData, userToken) => {
     setUser(userData);
@@ -18,6 +43,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', userToken);
     localStorage.setItem('isLoggedIn', 'true');
+  }, []);
+
+  const selectPonpes = useCallback((ponpesId) => {
+    setSelectedPonpesId(ponpesId);
   }, []);
 
   const logout = useCallback(async () => {
@@ -38,29 +67,33 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
+      setSelectedPonpesId(null);
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('selected_ponpes_id');
       setIsLoading(false);
     }
   }, [token]);
 
-  // Role helpers
-  const isSuperAdmin = user?.roles?.includes('Super Admin');
-  const isAdmin = user?.roles?.includes('Admin') || isSuperAdmin;
-  const isGuru = user?.roles?.some(role => role.toLowerCase().includes('guru'));
+  // Dapatkan daftar ponpes yang bisa diakses user sebagai Guru Saringan
+  const accessiblePonpes = user?.guru_saringan_ponpes_ids || [];
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      isAuthenticated, 
-      isLoading, 
-      login, 
+    <AuthContext.Provider value={{
+      user,
+      token,
+      isAuthenticated,
+      isLoading,
+      login,
       logout,
+      selectPonpes,
+      selectedPonpesId,
+      setSelectedPonpesId,
       isSuperAdmin,
       isAdmin,
-      isGuru
+      isGuru,
+      accessiblePonpes,
     }}>
       {children}
     </AuthContext.Provider>
