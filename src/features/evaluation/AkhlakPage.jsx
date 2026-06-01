@@ -8,10 +8,10 @@ import StickyBottomBar from '../../components/StickyBottomBar';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 import { MOCK_EVALUATION_HISTORY } from '../../data/mockData';
 
-const AkhlakPage = ({ 
-  selectedStudents, 
-  onBack, 
-  onSubmit 
+const AkhlakPage = ({
+  selectedStudents,
+  onBack,
+  onSubmit
 }) => {
   // Initialize notes for all selected students
   const [notes, setNotes] = useState(() => {
@@ -41,19 +41,19 @@ const AkhlakPage = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
+
     try {
       const token = localStorage.getItem('token');
-      
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/penilaian-akhlak';
-      
+
+      const API_URL = 'https://generus.app/api/saringan/penilaian-akhlak';
+
       for (const student of selectedStudents) {
         const note = notes[student.id];
-        
+
         if (!note || note.trim() === '') {
-            throw new Error(`Catatan untuk ${student.nama || student.name || 'S'} tidak boleh kosong.`);
+          throw new Error(`Catatan untuk ${student.nama || student.name || 'S'} tidak boleh kosong.`);
         }
-        
+
         const payload = {
           peserta_id: student.id,
           catatan: note.trim()
@@ -99,11 +99,10 @@ const AkhlakPage = ({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${
-                submitStatus.type === 'success' 
-                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' 
+              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${submitStatus.type === 'success'
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
                   : 'bg-rose-50 border-rose-500 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
-              }`}
+                }`}
             >
               {submitStatus.type === 'success' ? <CheckCircle size={24} /> : <XCircle size={24} />}
               {submitStatus.message}
@@ -116,42 +115,40 @@ const AkhlakPage = ({
           {selectedStudents.map((student) => {
             const isActive = student.id === activeStudentId;
             const isDone = notes[student.id]?.trim().length > 0;
-            
+
             return (
-              <GlassCard 
-                key={student.id} 
+              <GlassCard
+                key={student.id}
                 onClick={() => setActiveStudentId(student.id)}
-                className={`p-4 min-w-[240px] flex gap-3 cursor-pointer transition-all active:scale-95 ${
-                  isActive 
-                    ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-900/20 ring-2 ring-amber-500/20' 
+                className={`p-4 min-w-[240px] flex gap-3 cursor-pointer transition-all active:scale-95 ${isActive
+                    ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-900/20 ring-2 ring-amber-500/20'
                     : 'opacity-70 grayscale-[0.3]'
-                }`}
+                  }`}
               >
-                 <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition-colors ${
-                   isActive 
-                    ? 'bg-amber-500 text-white' 
+                <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition-colors ${isActive
+                    ? 'bg-amber-500 text-white'
                     : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'
-                 }`}>
-                   {(student.nama || student.name || 'S').charAt(0)}
-                   {isDone && (
-                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in">
-                       <CheckCircle size={10} className="text-white" />
-                     </div>
-                   )}
-                 </div>
-                 <div className="overflow-hidden flex-1">
-                   <div className="flex justify-between items-start mb-1">
-                     <h4 className={`font-bold truncate ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                       {student.nama || student.name}
-                     </h4>
-                     {isDone ? (
-                       <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Sudah</span>
-                     ) : (
-                       <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Belum</span>
-                     )}
-                   </div>
-                   <p className="text-[10px] text-slate-500 uppercase font-semibold">Cocard: {student.cocard}</p>
-                 </div>
+                  }`}>
+                  {(student.nama || student.name || 'S').charAt(0)}
+                  {isDone && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in">
+                      <CheckCircle size={10} className="text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="overflow-hidden flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className={`font-bold truncate ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {student.nama || student.name}
+                    </h4>
+                    {isDone ? (
+                      <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Sudah</span>
+                    ) : (
+                      <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Belum</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 uppercase font-semibold">Cocard: {student.cocard}</p>
+                </div>
               </GlassCard>
             );
           })}
@@ -168,42 +165,42 @@ const AkhlakPage = ({
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
               <GlassCard className="p-6 mb-6 border-amber-500/20">
-              <div className="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-700 pb-3">
-                <div className="flex items-center gap-2">
-                  <Award className="text-amber-500" size={24} />
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">Form: {currentStudent.nama || currentStudent.name}</h3>
+                <div className="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-700 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Award className="text-amber-500" size={24} />
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Form: {currentStudent.nama || currentStudent.name}</h3>
+                  </div>
+                  <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                    {currentStudent.status_mondok || currentStudent.camp || 'Reguler'}
+                  </span>
                 </div>
-                <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                  {currentStudent.status_mondok || currentStudent.camp || 'Reguler'}
-                </span>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-200 font-medium text-lg mb-2 flex items-center gap-2">
-                    <MessageSquare size={18} className="text-slate-400" />
-                    Catatan Guru
-                  </label>
-                  <textarea 
-                    rows="6" 
-                    value={currentNote}
-                    onChange={(e) => handleNoteChange(e.target.value)}
-                    placeholder={`Tuliskan catatan khusus untuk ${currentStudent.nama || currentStudent.name}...`}
-                    className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-slate-800 dark:text-white resize-none text-lg leading-relaxed placeholder:text-slate-400 shadow-inner"
-                  ></textarea>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-slate-700 dark:text-slate-200 font-medium text-lg mb-2 flex items-center gap-2">
+                      <MessageSquare size={18} className="text-slate-400" />
+                      Catatan Guru
+                    </label>
+                    <textarea
+                      rows="6"
+                      value={currentNote}
+                      onChange={(e) => handleNoteChange(e.target.value)}
+                      placeholder={`Tuliskan catatan khusus untuk ${currentStudent.nama || currentStudent.name}...`}
+                      className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-amber-500 outline-none text-slate-800 dark:text-white resize-none text-lg leading-relaxed placeholder:text-slate-400 shadow-inner"
+                    ></textarea>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* History */}
         <div className="flex items-center justify-between mb-4 mt-8">
           <h3 className="text-xl font-bold text-slate-800 dark:text-white">Riwayat Catatan</h3>
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">3 Catatan Terakhir</span>
         </div>
-        
+
         <div className="space-y-3 mb-8">
           {MOCK_EVALUATION_HISTORY.filter(h => h.type.includes('Akhlak') || h.type.includes('Sikap')).map((hist, i) => (
             <GlassCard key={i} className="p-4">
@@ -221,11 +218,11 @@ const AkhlakPage = ({
               </p>
             </GlassCard>
           ))}
-          
+
           {/* Fallback if no specific akhlak history in mock data */}
           {MOCK_EVALUATION_HISTORY.filter(h => h.type.includes('Akhlak') || h.type.includes('Sikap')).length === 0 && (
             <div className="text-center py-8 opacity-50">
-               <p className="text-slate-500 italic">Belum ada riwayat catatan akhlak.</p>
+              <p className="text-slate-500 italic">Belum ada riwayat catatan akhlak.</p>
             </div>
           )}
         </div>
@@ -237,16 +234,16 @@ const AkhlakPage = ({
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Status Progress</span>
               <div className="flex gap-1 mt-1">
                 {selectedStudents.map(s => (
-                  <div 
-                    key={s.id} 
+                  <div
+                    key={s.id}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${notes[s.id]?.trim().length > 0 ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'}`}
                   />
                 ))}
               </div>
             </div>
-            <Button 
-              onClick={handleSubmit} 
-              colorClass="amber" 
+            <Button
+              onClick={handleSubmit}
+              colorClass="amber"
               className={`flex-1 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={isSubmitting || selectedStudents.some(s => !notes[s.id]?.trim())}
             >

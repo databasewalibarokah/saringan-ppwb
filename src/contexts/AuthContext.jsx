@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       if (token) {
-        await fetch('https://sistem-ponpes-jagat.test/api/auth/logout', {
+        await fetch('https://generus.app/api/auth/logout', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',

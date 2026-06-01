@@ -7,23 +7,23 @@ import StickyBottomBar from '../../components/StickyBottomBar';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 import { FILTER_OPTIONS } from '../../data/mockData';
 
-const SelectStudentPage = ({ 
-  selectedStudents, 
-  toggleStudent, 
-  onBack, 
-  onContinue 
+const SelectStudentPage = ({
+  selectedStudents,
+  toggleStudent,
+  onBack,
+  onContinue
 }) => {
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
-  
+
   const fetchStudents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/peserta';
+      const API_URL = 'https://generus.app/api/saringan/peserta';
       const token = localStorage.getItem('token') || '';
 
       const response = await fetch(API_URL, {
@@ -59,12 +59,12 @@ const SelectStudentPage = ({
   // Memoized filter calculation for performance on large lists
   const filteredStudents = useMemo(() => {
     if (!Array.isArray(students)) return [];
-    
+
     return students.filter(s => {
       const name = (s.nama || s.name || '').toLowerCase();
       const cocard = (s.cocard || s.id || '').toString();
       const search = searchQuery.toLowerCase();
-      
+
       return name.includes(search) || cocard.includes(search);
     });
   }, [students, searchQuery]);
@@ -82,15 +82,15 @@ const SelectStudentPage = ({
         <div className="flex gap-3 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Cari nama atau no. cocard..." 
+            <input
+              type="text"
+              placeholder="Cari nama atau no. cocard..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/50 dark:border-slate-700/50 rounded-2xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-lg"
             />
           </div>
-          <button 
+          <button
             aria-label="Filter"
             className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/50 dark:border-slate-700/50 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm active:scale-95 transition-transform"
           >
@@ -101,11 +101,11 @@ const SelectStudentPage = ({
         {/* Filters Pills */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
           {FILTER_OPTIONS.map((filter, i) => (
-            <button 
-              key={i} 
+            <button
+              key={i}
               className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-colors 
-                ${i === 0 
-                  ? 'bg-emerald-600 text-white' 
+                ${i === 0
+                  ? 'bg-emerald-600 text-white'
                   : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-white/50 dark:border-slate-700/50'
                 }`}
             >
@@ -128,7 +128,7 @@ const SelectStudentPage = ({
               </div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Gagal Memuat Data</h3>
               <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
-              <button 
+              <button
                 onClick={fetchStudents}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"
               >
@@ -142,10 +142,10 @@ const SelectStudentPage = ({
               const displayName = student.nama || student.name;
               const displayGender = student.jenis_kelamin === 'laki-laki' || student.gender === 'L' ? 'Ikhwan' : 'Akhwat';
               const displayInfo = `${displayGender} • ${student.status_mondok || student.camp || 'Reguler'}`;
-              
+
               return (
-                <GlassCard 
-                  key={student.id} 
+                <GlassCard
+                  key={student.id}
                   onClick={() => toggleStudent(student)}
                   className={`p-4 flex items-center gap-4 cursor-pointer transition-all active:scale-[0.98] ${isSelected ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20' : ''}`}
                 >
@@ -178,8 +178,8 @@ const SelectStudentPage = ({
         {/* Load More Button */}
         {filteredStudents.length > visibleCount && (
           <div className="mt-8 flex justify-center">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setVisibleCount(prev => prev + 20)}
               className="w-full sm:w-auto px-8"
             >

@@ -8,10 +8,10 @@ import StickyBottomBar from '../../components/StickyBottomBar';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 import { BACAAN_INITIAL_STATE } from '../../data/mockData';
 
-const BacaanEvaluatePage = ({ 
-  selectedStudents, 
-  onBack, 
-  onSubmit 
+const BacaanEvaluatePage = ({
+  selectedStudents,
+  onBack,
+  onSubmit
 }) => {
   // Initialize evaluations for all selected students
   const [allEvaluations, setAllEvaluations] = useState(() => {
@@ -43,18 +43,18 @@ const BacaanEvaluatePage = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
+
     try {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const guruId = user.person_id || user.id; // Fallback to id if person_id missing
-      
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/penilaian-bacaan';
-      
+
+      const API_URL = 'https://generus.app/api/saringan/penilaian-bacaan';
+
       // We will submit each student evaluation sequentially
       for (const student of selectedStudents) {
         const evaluation = allEvaluations[student.id];
-        
+
         const payload = {
           peserta_id: student.id,
           guru_id: evaluation.teacherProxy || guruId,
@@ -107,11 +107,10 @@ const BacaanEvaluatePage = ({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${
-                submitStatus.type === 'success' 
-                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700' 
+              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${submitStatus.type === 'success'
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
                   : 'bg-rose-50 border-rose-500 text-rose-700'
-              }`}
+                }`}
             >
               {submitStatus.type === 'success' ? <CheckCircle size={24} /> : <XCircle size={24} />}
               {submitStatus.message}
@@ -125,35 +124,33 @@ const BacaanEvaluatePage = ({
             const isActive = student.id === activeStudentId;
             const evalData = allEvaluations[student.id];
             const isDone = evalData.nilai !== null;
-            
+
             return (
-              <GlassCard 
-                key={student.id} 
+              <GlassCard
+                key={student.id}
                 onClick={() => setActiveStudentId(student.id)}
-                className={`p-4 min-w-[180px] flex gap-3 cursor-pointer transition-all duration-300 active:scale-95 border-2 ${
-                  isActive 
-                    ? 'border-cyan-500 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/20 dark:to-blue-900/20 ring-4 ring-cyan-500/10' 
+                className={`p-4 min-w-[180px] flex gap-3 cursor-pointer transition-all duration-300 active:scale-95 border-2 ${isActive
+                    ? 'border-cyan-500 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/20 dark:to-blue-900/20 ring-4 ring-cyan-500/10'
                     : 'opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 border-transparent'
-                }`}
+                  }`}
               >
-                 <div className={`relative w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500 ${
-                   isActive 
-                    ? 'bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 rotate-3' 
+                <div className={`relative w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-500 ${isActive
+                    ? 'bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 rotate-3'
                     : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                 }`}>
-                   {(student.nama || student.name || 'S').charAt(0)}
-                   {isDone && (
-                     <div className={`absolute -top-2 -right-2 w-6 h-6 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in duration-300 shadow-md ${evalData.nilai === 'lulus' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-                       {evalData.nilai === 'lulus' ? <CheckCircle size={12} className="text-white" /> : <XCircle size={12} className="text-white" />}
-                     </div>
-                   )}
-                 </div>
-                 <div className="overflow-hidden flex-1">
-                    <h4 className={`font-black truncate text-sm tracking-tight ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                      {student.nama || student.name}
-                    </h4>
-                    <p className={`text-[10px] uppercase font-bold tracking-widest ${isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'}`}>ID: {student.id.substring(0, 5).toUpperCase()}</p>
-                 </div>
+                  }`}>
+                  {(student.nama || student.name || 'S').charAt(0)}
+                  {isDone && (
+                    <div className={`absolute -top-2 -right-2 w-6 h-6 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in duration-300 shadow-md ${evalData.nilai === 'lulus' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                      {evalData.nilai === 'lulus' ? <CheckCircle size={12} className="text-white" /> : <XCircle size={12} className="text-white" />}
+                    </div>
+                  )}
+                </div>
+                <div className="overflow-hidden flex-1">
+                  <h4 className={`font-black truncate text-sm tracking-tight ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {student.nama || student.name}
+                  </h4>
+                  <p className={`text-[10px] uppercase font-bold tracking-widest ${isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'}`}>ID: {student.id.substring(0, 5).toUpperCase()}</p>
+                </div>
               </GlassCard>
             );
           })}
@@ -186,8 +183,8 @@ const BacaanEvaluatePage = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="space-y-2">
                     <label className="block text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Materi Bacaan</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={currentEval.materi}
                       onChange={(e) => updateField('materi', e.target.value)}
                       placeholder="Contoh: Al-Baqarah"
@@ -205,11 +202,10 @@ const BacaanEvaluatePage = ({
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => updateField('nilai', 'lulus')}
-                      className={`relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 group overflow-hidden ${
-                        currentEval.nilai === 'lulus'
+                      className={`relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 group overflow-hidden ${currentEval.nilai === 'lulus'
                           ? 'bg-emerald-500 border-emerald-400 text-white shadow-xl shadow-emerald-500/40 scale-[1.02]'
                           : 'bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-emerald-300 dark:hover:border-emerald-700'
-                      }`}
+                        }`}
                     >
                       {currentEval.nilai === 'lulus' && (
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-50" />
@@ -219,14 +215,13 @@ const BacaanEvaluatePage = ({
                       </div>
                       <span className="font-black text-lg tracking-tight">LULUS</span>
                     </button>
-                    
+
                     <button
                       onClick={() => updateField('nilai', 'tidak_lulus')}
-                      className={`relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 group overflow-hidden ${
-                        currentEval.nilai === 'tidak_lulus'
+                      className={`relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 group overflow-hidden ${currentEval.nilai === 'tidak_lulus'
                           ? 'bg-rose-500 border-rose-400 text-white shadow-xl shadow-rose-500/40 scale-[1.02]'
                           : 'bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-700'
-                      }`}
+                        }`}
                     >
                       {currentEval.nilai === 'tidak_lulus' && (
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-50" />
@@ -258,32 +253,32 @@ const BacaanEvaluatePage = ({
                             <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">Pilih poin yang perlu diperbaiki</p>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-8">
                           {[
-                            { 
-                              key: 'kekurangan_tajwid', 
-                              label: 'Tajwid', 
+                            {
+                              key: 'kekurangan_tajwid',
+                              label: 'Tajwid',
                               icon: '✨',
-                              options: ['Dengung', 'Mad', 'Makhraj', 'Tafkhim-Tarqiq'] 
+                              options: ['Dengung', 'Mad', 'Makhraj', 'Tafkhim-Tarqiq']
                             },
-                            { 
-                              key: 'kekurangan_khusus', 
-                              label: 'Khusus', 
+                            {
+                              key: 'kekurangan_khusus',
+                              label: 'Khusus',
                               icon: '🎯',
-                              options: ['Harakat', 'Lafadz', 'Lam Jalalah'] 
+                              options: ['Harakat', 'Lafadz', 'Lam Jalalah']
                             },
-                            { 
-                              key: 'kekurangan_keserasian', 
-                              label: 'Keserasian', 
+                            {
+                              key: 'kekurangan_keserasian',
+                              label: 'Keserasian',
                               icon: '⚖️',
-                              options: ['Panjang Pendek', 'Ikhtilash Huruf Sukun', 'Ikhtilash Huruf Syiddah'] 
+                              options: ['Panjang Pendek', 'Ikhtilash Huruf Sukun', 'Ikhtilash Huruf Syiddah']
                             },
-                            { 
-                              key: 'kekurangan_kelancaran', 
-                              label: 'Kelancaran', 
+                            {
+                              key: 'kekurangan_kelancaran',
+                              label: 'Kelancaran',
                               icon: '🚀',
-                              options: ['Kecepatan', 'Ketartilan'] 
+                              options: ['Kecepatan', 'Ketartilan']
                             }
                           ].map((cat) => (
                             <div key={cat.key} className="relative">
@@ -297,7 +292,7 @@ const BacaanEvaluatePage = ({
                                   </span>
                                 )}
                               </div>
-                              
+
                               <div className="flex flex-wrap gap-2">
                                 {cat.options.map(option => {
                                   const isSelected = currentEval[cat.key].includes(option);
@@ -306,16 +301,15 @@ const BacaanEvaluatePage = ({
                                       key={option}
                                       onClick={() => {
                                         const current = currentEval[cat.key];
-                                        const next = isSelected 
-                                          ? current.filter(i => i !== option) 
+                                        const next = isSelected
+                                          ? current.filter(i => i !== option)
                                           : [...current, option];
                                         updateField(cat.key, next);
                                       }}
-                                      className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 border-2 flex items-center gap-2 ${
-                                        isSelected
+                                      className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 border-2 flex items-center gap-2 ${isSelected
                                           ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/30 scale-[1.02]'
                                           : 'bg-white/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-rose-200 dark:hover:border-rose-900 active:scale-95'
-                                      }`}
+                                        }`}
                                     >
                                       {option}
                                       {isSelected && <CheckCircle size={14} className="animate-in slide-in-from-left-2" />}
@@ -337,8 +331,8 @@ const BacaanEvaluatePage = ({
                     <MessageSquare className="text-cyan-500" size={20} />
                     Catatan <span className="text-slate-400 font-normal text-sm ml-1">(Opsional)</span>
                   </label>
-                  <textarea 
-                    rows="3" 
+                  <textarea
+                    rows="3"
                     value={currentEval.note}
                     onChange={(e) => updateField('note', e.target.value)}
                     placeholder={`Tambahkan catatan untuk ${currentStudent.nama || currentStudent.name}...`}
@@ -352,8 +346,8 @@ const BacaanEvaluatePage = ({
                     <UserCheck className="text-cyan-500" size={20} />
                     ID Guru Penguji <span className="text-slate-400 font-normal text-sm ml-1">(Opsional)</span>
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={currentEval.teacherProxy}
                     onChange={(e) => updateField('teacherProxy', e.target.value)}
                     placeholder="Masukkan ID Guru jika berbeda..."
@@ -372,19 +366,18 @@ const BacaanEvaluatePage = ({
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Progres</span>
               <div className="flex gap-1 mt-1">
                 {selectedStudents.map(s => (
-                  <div 
-                    key={s.id} 
-                    className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                      allEvaluations[s.id]?.nilai !== null
-                        ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(6,182,212,0.6)]' 
+                  <div
+                    key={s.id}
+                    className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${allEvaluations[s.id]?.nilai !== null
+                        ? 'bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(6,182,212,0.6)]'
                         : 'bg-slate-200 dark:bg-slate-700/50'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
             </div>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               className={`flex-1 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:via-blue-500 hover:to-indigo-500 shadow-xl shadow-blue-500/20 border-0 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={isSubmitting || selectedStudents.some(s => allEvaluations[s.id].nilai === null)}
             >

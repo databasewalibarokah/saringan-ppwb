@@ -22,6 +22,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Badge'; // Using Badge file for Spinner too
 import Button from '../../../components/Button';
 import Modal from '../../../components/ui/Modal';
+import Pagination from '../../../components/ui/Pagination';
 import toast from 'react-hot-toast';
 
 const StudentsPage = () => {
@@ -38,6 +39,15 @@ const StudentsPage = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [candidates, setCandidates] = useState([]);
   const [isImporting, setIsImporting] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedPeriodeId]);
 
   const fetchPeriods = useCallback(async () => {
     try {
@@ -102,6 +112,12 @@ const StudentsPage = () => {
   const filteredStudents = students.filter(s => 
     s.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.cocard?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * itemsPerPage, 
+    currentPage * itemsPerPage
   );
 
   const handleShowImportModal = async () => {
@@ -203,8 +219,9 @@ const StudentsPage = () => {
           <p className="text-slate-500 font-bold italic">Tidak ada data murid ditemukan</p>
         </div>
       ) : (
-        <Table headers={selectedPonpesId === 'all' ? ['Nama', 'Cocard', 'Pondok', 'L/P', 'Status', 'Aksi'] : ['Nama', 'Cocard', 'L/P', 'Status', 'Aksi']}>
-          {filteredStudents.map((student) => (
+        <div className="space-y-4">
+          <Table headers={selectedPonpesId === 'all' ? ['Nama', 'Cocard', 'Pondok', 'L/P', 'Status', 'Aksi'] : ['Nama', 'Cocard', 'L/P', 'Status', 'Aksi']}>
+            {paginatedStudents.map((student) => (
             <TableRow key={student.id}>
               <TableCell>
                 <div className="flex items-center gap-3">
@@ -248,7 +265,20 @@ const StudentsPage = () => {
               </TableCell>
             </TableRow>
           ))}
-        </Table>
+          </Table>
+          
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredStudents.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(newPerPage) => {
+              setItemsPerPage(newPerPage);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       )}
 
       {/* Modal for Add/Edit */}

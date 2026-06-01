@@ -9,17 +9,17 @@ import ScoreCardInput from './components/ScoreCardInput';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 import { MOCK_EVALUATION_HISTORY, INITIAL_SCORES } from '../../data/mockData';
 
-const EvaluationPage = ({ 
-  selectedStudents, 
-  onBack, 
-  onSubmit 
+const EvaluationPage = ({
+  selectedStudents,
+  onBack,
+  onSubmit
 }) => {
   // Initialize scores for all selected students
   const [allEvaluations, setAllEvaluations] = useState(() => {
     const initial = {};
     selectedStudents.forEach(s => {
-      initial[s.id] = { 
-        ...INITIAL_SCORES, 
+      initial[s.id] = {
+        ...INITIAL_SCORES,
         materi: '',
         note: '',
         teacherProxy: '',
@@ -51,18 +51,18 @@ const EvaluationPage = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
+
     try {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const guruId = user.person_id || user.id;
-      
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/penilaian-penyampaian';
-      
+
+      const API_URL = 'https://generus.app/api/saringan/penilaian-penyampaian';
+
       // We will submit each student evaluation sequentially
       for (const student of selectedStudents) {
         const evaluation = allEvaluations[student.id];
-        
+
         const payload = {
           peserta_id: student.id,
           guru_id: evaluation.teacherProxy || guruId,
@@ -114,11 +114,10 @@ const EvaluationPage = ({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${
-                submitStatus.type === 'success' 
-                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700' 
+              className={`mb-6 p-4 rounded-2xl flex items-center gap-3 font-bold border-2 ${submitStatus.type === 'success'
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
                   : 'bg-rose-50 border-rose-500 text-rose-700'
-              }`}
+                }`}
             >
               {submitStatus.type === 'success' ? <CheckCircle size={24} /> : <AlertCircle size={24} />}
               {submitStatus.message}
@@ -131,46 +130,44 @@ const EvaluationPage = ({
           {selectedStudents.map((student) => {
             const isActive = student.id === activeStudentId;
             const evalData = allEvaluations[student.id];
-            const isDone = evalData?.makna !== null && 
-                           evalData?.keterangan !== null && 
-                           evalData?.penjelasan !== null && 
-                           evalData?.pemahaman !== null;
-            
+            const isDone = evalData?.makna !== null &&
+              evalData?.keterangan !== null &&
+              evalData?.penjelasan !== null &&
+              evalData?.pemahaman !== null;
+
             return (
-              <GlassCard 
-                key={student.id} 
+              <GlassCard
+                key={student.id}
                 onClick={() => setActiveStudentId(student.id)}
-                className={`p-4 min-w-[200px] flex gap-3 cursor-pointer transition-all active:scale-95 ${
-                  isActive 
-                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 ring-2 ring-emerald-500/20' 
+                className={`p-4 min-w-[200px] flex gap-3 cursor-pointer transition-all active:scale-95 ${isActive
+                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 ring-2 ring-emerald-500/20'
                     : 'opacity-70 grayscale-[0.3]'
-                }`}
+                  }`}
               >
-                 <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition-colors ${
-                   isActive 
-                    ? 'bg-emerald-500 text-white' 
+                <div className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition-colors ${isActive
+                    ? 'bg-emerald-500 text-white'
                     : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400'
-                 }`}>
-                   {(student.nama || student.name || 'S').charAt(0)}
-                   {isDone && (
-                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in">
-                       <CheckCircle size={10} className="text-white" />
-                     </div>
-                   )}
-                 </div>
-                 <div className="overflow-hidden flex-1">
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className={`font-bold truncate ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                        {student.nama || student.name}
-                      </h4>
-                      {isDone ? (
-                        <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Sudah</span>
-                      ) : (
-                        <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Belum</span>
-                      )}
+                  }`}>
+                  {(student.nama || student.name || 'S').charAt(0)}
+                  {isDone && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-600 border-2 border-white dark:border-slate-800 rounded-full flex items-center justify-center animate-in zoom-in">
+                      <CheckCircle size={10} className="text-white" />
                     </div>
-                    <p className="text-[10px] text-slate-500 uppercase font-semibold">ID: {student.id.substring(0, 5).toUpperCase()}</p>
-                 </div>
+                  )}
+                </div>
+                <div className="overflow-hidden flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className={`font-bold truncate ${isActive ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {student.nama || student.name}
+                    </h4>
+                    {isDone ? (
+                      <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Sudah</span>
+                    ) : (
+                      <span className="text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md font-black uppercase whitespace-nowrap ml-2">Belum</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 uppercase font-semibold">ID: {student.id.substring(0, 5).toUpperCase()}</p>
+                </div>
               </GlassCard>
             );
           })}
@@ -199,35 +196,35 @@ const EvaluationPage = ({
                   <label className="block text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
                     <BookOpen size={16} /> Materi Penyampaian
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={currentEval.materi}
                     onChange={(e) => updateScore('materi', e.target.value)}
                     placeholder="Contoh: Al-Baqarah"
                     className="w-full p-4 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800 dark:text-white font-bold transition-all"
                   />
                 </div>
-                
+
                 <div className="space-y-6">
-                  <ScoreCardInput 
-                    label="Nilai Makna" 
-                    value={currentEval.makna} 
-                    onChange={(val) => updateScore('makna', val)} 
+                  <ScoreCardInput
+                    label="Nilai Makna"
+                    value={currentEval.makna}
+                    onChange={(val) => updateScore('makna', val)}
                   />
-                  <ScoreCardInput 
-                    label="Nilai Keterangan" 
-                    value={currentEval.keterangan} 
-                    onChange={(val) => updateScore('keterangan', val)} 
+                  <ScoreCardInput
+                    label="Nilai Keterangan"
+                    value={currentEval.keterangan}
+                    onChange={(val) => updateScore('keterangan', val)}
                   />
-                  <ScoreCardInput 
-                    label="Nilai Penjelasan" 
-                    value={currentEval.penjelasan} 
-                    onChange={(val) => updateScore('penjelasan', val)} 
+                  <ScoreCardInput
+                    label="Nilai Penjelasan"
+                    value={currentEval.penjelasan}
+                    onChange={(val) => updateScore('penjelasan', val)}
                   />
-                  <ScoreCardInput 
-                    label="Nilai Pemahaman" 
-                    value={currentEval.pemahaman} 
-                    onChange={(val) => updateScore('pemahaman', val)} 
+                  <ScoreCardInput
+                    label="Nilai Pemahaman"
+                    value={currentEval.pemahaman}
+                    onChange={(val) => updateScore('pemahaman', val)}
                   />
                 </div>
 
@@ -237,8 +234,8 @@ const EvaluationPage = ({
                       <MessageSquare className="text-emerald-500" size={20} />
                       Catatan Penguji <span className="text-slate-400 font-normal text-sm ml-1">(Opsional)</span>
                     </label>
-                    <textarea 
-                      rows="3" 
+                    <textarea
+                      rows="3"
                       value={currentEval.note}
                       onChange={(e) => updateScore('note', e.target.value)}
                       placeholder={`Tambahkan catatan khusus untuk ${currentStudent.nama || currentStudent.name}...`}
@@ -250,8 +247,8 @@ const EvaluationPage = ({
                       <UserCheck className="text-emerald-500" size={20} />
                       ID Guru Penguji <span className="text-slate-400 font-normal text-sm ml-1">(Opsional)</span>
                     </label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={currentEval.teacherProxy}
                       onChange={(e) => updateScore('teacherProxy', e.target.value)}
                       placeholder="Masukkan ID Guru jika mewakili..."
@@ -295,27 +292,26 @@ const EvaluationPage = ({
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Status Progress</span>
               <div className="flex gap-1 mt-1">
                 {selectedStudents.map(s => (
-                  <div 
-                    key={s.id} 
-                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                      allEvaluations[s.id]?.makna !== null && 
-                      allEvaluations[s.id]?.keterangan !== null && 
-                      allEvaluations[s.id]?.penjelasan !== null && 
-                      allEvaluations[s.id]?.pemahaman !== null 
-                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+                  <div
+                    key={s.id}
+                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${allEvaluations[s.id]?.makna !== null &&
+                        allEvaluations[s.id]?.keterangan !== null &&
+                        allEvaluations[s.id]?.penjelasan !== null &&
+                        allEvaluations[s.id]?.pemahaman !== null
+                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                         : 'bg-slate-200 dark:bg-slate-700'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
             </div>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               className={`flex-1 bg-emerald-600 hover:bg-emerald-500 ${isSubmitting ? 'opacity-70' : ''}`}
-              disabled={isSubmitting || selectedStudents.some(s => 
-                allEvaluations[s.id]?.makna === null || 
-                allEvaluations[s.id]?.keterangan === null || 
-                allEvaluations[s.id]?.penjelasan === null || 
+              disabled={isSubmitting || selectedStudents.some(s =>
+                allEvaluations[s.id]?.makna === null ||
+                allEvaluations[s.id]?.keterangan === null ||
+                allEvaluations[s.id]?.penjelasan === null ||
                 allEvaluations[s.id]?.pemahaman === null
               )}
             >

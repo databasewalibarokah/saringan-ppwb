@@ -6,11 +6,11 @@ import Button from '../../components/Button';
 import StickyBottomBar from '../../components/StickyBottomBar';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 
-const BacaanSelectPage = ({ 
-  selectedStudents, 
-  toggleStudent, 
-  onBack, 
-  onContinue 
+const BacaanSelectPage = ({
+  selectedStudents,
+  toggleStudent,
+  onBack,
+  onContinue
 }) => {
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +24,7 @@ const BacaanSelectPage = ({
     setIsLoading(true);
     setError(null);
     try {
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/peserta';
+      const API_URL = 'https://generus.app/api/saringan/peserta';
       const token = localStorage.getItem('token') || '';
 
       const response = await fetch(API_URL, {
@@ -65,16 +65,16 @@ const BacaanSelectPage = ({
       const name = (s.nama || s.name || '').toLowerCase();
       const cocard = (s.cocard || s.id || '').toString();
       const search = searchQuery.toLowerCase();
-      
+
       const matchesSearch = name.includes(search) || cocard.includes(search);
-      
+
       // Map API gender (laki-laki/perempuan) to filter value (L/P)
       const apiGender = s.jenis_kelamin === 'laki-laki' ? 'L' : (s.jenis_kelamin === 'perempuan' ? 'P' : s.gender);
       const matchesGender = genderFilter === 'Semua' || apiGender === genderFilter;
-      
+
       // Determine simakan count from API (might be jumlah_simakan or length of evaluasi array)
       const simakanCount = s.jumlah_simakan !== undefined ? s.jumlah_simakan : (s.evaluasi_bacaan?.length || 0);
-      
+
       let matchesSimakan = true;
       if (simakanFilter !== 'Semua') {
         if (simakanFilter === '3+') {
@@ -108,9 +108,9 @@ const BacaanSelectPage = ({
         {/* Search */}
         <div className="mb-6 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Cari nama atau no. cocard..." 
+          <input
+            type="text"
+            placeholder="Cari nama atau no. cocard..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/50 dark:border-slate-700/50 rounded-2xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-lg"
@@ -124,12 +124,12 @@ const BacaanSelectPage = ({
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Filter Gender</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {genderOptions.map((opt) => (
-                <button 
-                  key={opt.value} 
+                <button
+                  key={opt.value}
                   onClick={() => setGenderFilter(opt.value)}
                   className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all border
-                    ${genderFilter === opt.value 
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-105' 
+                    ${genderFilter === opt.value
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-105'
                       : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-white/50 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-800/80'
                     }`}
                 >
@@ -144,12 +144,12 @@ const BacaanSelectPage = ({
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Jumlah Simakan</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {simakanOptions.map((opt) => (
-                <button 
-                  key={opt} 
+                <button
+                  key={opt}
                   onClick={() => setSimakanFilter(opt)}
                   className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all border
-                    ${simakanFilter === opt 
-                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-md scale-105' 
+                    ${simakanFilter === opt
+                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-md scale-105'
                       : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-white/50 dark:border-slate-700/50 hover:bg-white/80 dark:hover:bg-slate-800/80'
                     }`}
                 >
@@ -174,7 +174,7 @@ const BacaanSelectPage = ({
               </div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Gagal Memuat Data</h3>
               <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
-              <button 
+              <button
                 onClick={fetchStudents}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"
               >
@@ -190,8 +190,8 @@ const BacaanSelectPage = ({
               const simakanCount = student.jumlah_simakan !== undefined ? student.jumlah_simakan : (student.evaluasi_bacaan?.length || 0);
 
               return (
-                <GlassCard 
-                  key={student.id} 
+                <GlassCard
+                  key={student.id}
                   onClick={() => toggleStudent(student)}
                   className={`p-4 flex items-center gap-4 transition-all cursor-pointer active:scale-[0.98] ${isSelected ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 ring-1 ring-emerald-500/30 shadow-lg shadow-emerald-500/10' : ''}`}
                 >
@@ -234,8 +234,8 @@ const BacaanSelectPage = ({
         {/* Load More Button */}
         {filteredStudents.length > visibleCount && (
           <div className="mt-8 flex justify-center">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setVisibleCount(prev => prev + 20)}
               className="w-full sm:w-auto px-8"
             >

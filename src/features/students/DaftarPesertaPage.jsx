@@ -9,11 +9,11 @@ import SelectedStudentsPanel from './components/SelectedStudentsPanel';
 import { useStudentFilter } from './hooks/useStudentFilter';
 import { FILTER_OPTIONS } from '../../data/mockData';
 
-const DaftarPesertaPage = ({ 
-  selectedStudents, 
-  toggleStudent, 
-  onBack, 
-  onContinue 
+const DaftarPesertaPage = ({
+  selectedStudents,
+  toggleStudent,
+  onBack,
+  onContinue
 }) => {
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,8 +24,8 @@ const DaftarPesertaPage = ({
     setError(null);
     try {
       // In a real app, this would be an environment variable
-      const API_URL = 'https://sistem-ponpes-jagat.test/api/saringan/peserta';
-      
+      const API_URL = 'https://generus.app/api/saringan/peserta';
+
       // Get token from localStorage (assuming Sanctum/Bearer token)
       const token = localStorage.getItem('token') || ''; // Adjust based on where you store the token
 
@@ -58,12 +58,12 @@ const DaftarPesertaPage = ({
   }, [fetchStudents]);
 
   // Use custom hook for search and filtering logic on the fetched data
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    activeFilter, 
-    setActiveFilter, 
-    filteredStudents 
+  const {
+    searchQuery,
+    setSearchQuery,
+    activeFilter,
+    setActiveFilter,
+    filteredStudents
   } = useStudentFilter(students);
 
   return (
@@ -78,10 +78,10 @@ const DaftarPesertaPage = ({
 
         {/* Filter Module */}
         <div className="mb-6">
-          <StudentFilter 
-            options={FILTER_OPTIONS} 
-            activeFilter={activeFilter} 
-            onFilterChange={setActiveFilter} 
+          <StudentFilter
+            options={FILTER_OPTIONS}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
           />
         </div>
 
@@ -99,7 +99,7 @@ const DaftarPesertaPage = ({
               </div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Terjadi Kesalahan</h3>
               <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
-              <button 
+              <button
                 onClick={fetchStudents}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-600/20"
               >
@@ -111,19 +111,19 @@ const DaftarPesertaPage = ({
             filteredStudents.map((student) => {
               const isSelected = selectedStudents.some(s => s.id === student.id);
               return (
-                <StudentCard 
-                  key={student.id} 
-                  student={student} 
-                  isSelected={isSelected} 
-                  onToggleSelect={toggleStudent} 
+                <StudentCard
+                  key={student.id}
+                  student={student}
+                  isSelected={isSelected}
+                  onToggleSelect={toggleStudent}
                 />
               );
             })
           ) : (
             <div className="col-span-full text-center py-20 bg-white/30 dark:bg-slate-800/30 rounded-3xl border border-white/50 dark:border-slate-700/50 backdrop-blur-sm">
               <p className="text-slate-500 dark:text-slate-400 font-medium">
-                {searchQuery || activeFilter !== 'Semua' 
-                  ? 'Tidak ada santri yang cocok dengan pencarian.' 
+                {searchQuery || activeFilter !== 'Semua'
+                  ? 'Tidak ada santri yang cocok dengan pencarian.'
                   : 'Belum ada data peserta untuk periode ini.'}
               </p>
             </div>
@@ -131,9 +131,9 @@ const DaftarPesertaPage = ({
         </div>
 
         {/* Selected Students Panel / Action Bar */}
-        <SelectedStudentsPanel 
-          selectedStudents={selectedStudents} 
-          onStartEvaluation={onContinue} 
+        <SelectedStudentsPanel
+          selectedStudents={selectedStudents}
+          onStartEvaluation={onContinue}
         />
       </div>
     </SwipeToBackWrapper>

@@ -1,4 +1,4 @@
-const BASE_URL = 'https://sistem-ponpes-jagat.test/api';
+const BASE_URL = 'https://generus.app/api';
 
 const getHeaders = (token) => {
   const headers = {
