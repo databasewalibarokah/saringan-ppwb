@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import SwipeToBackWrapper from '../../components/SwipeToBackWrapper';
 import StudentSearch from './components/StudentSearch';
@@ -18,6 +18,10 @@ const DaftarPesertaPage = ({
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const fetchStudents = useCallback(async () => {
     setIsLoading(true);
@@ -43,8 +47,12 @@ const DaftarPesertaPage = ({
       }
 
       const result = await response.json();
-      // The API returns a paginated object, so the data is in result.data
-      setStudents(result.data || []);
+      
+      // Deduplicate data by ID in case backend returns double data
+      const data = result.data || [];
+      const uniqueData = Array.from(new Map(data.map(item => [item.id, item])).values());
+      
+      setStudents(uniqueData);
     } catch (err) {
       setError(err.message);
       console.error('Fetch error:', err);
@@ -65,6 +73,18 @@ const DaftarPesertaPage = ({
     setActiveFilter,
     filteredStudents
   } = useStudentFilter(students);
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFilter]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <SwipeToBackWrapper onBack={onBack}>
@@ -108,17 +128,44 @@ const DaftarPesertaPage = ({
               </button>
             </div>
           ) : filteredStudents.length > 0 ? (
-            filteredStudents.map((student) => {
-              const isSelected = selectedStudents.some(s => s.id === student.id);
-              return (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  isSelected={isSelected}
-                  onToggleSelect={toggleStudent}
-                />
-              );
-            })
+            <>
+              {paginatedStudents.map((student) => {
+                const isSelected = selectedStudents.some(s => s.id === student.id);
+                return (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    isSelected={isSelected}
+                    onToggleSelect={toggleStudent}
+                  />
+                );
+              })}
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="col-span-full flex items-center justify-between mt-6 bg-white/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 backdrop-blur-sm">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
+                  >
+                    <ChevronLeft size={16} />
+                    Sebelumnya
+                  </button>
+                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    Halaman <span className="text-slate-800 dark:text-white font-bold">{currentPage}</span> dari {totalPages}
+                  </div>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
+                  >
+                    Selanjutnya
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="col-span-full text-center py-20 bg-white/30 dark:bg-slate-800/30 rounded-3xl border border-white/50 dark:border-slate-700/50 backdrop-blur-sm">
               <p className="text-slate-500 dark:text-slate-400 font-medium">

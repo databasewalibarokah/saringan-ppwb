@@ -10,7 +10,8 @@ import {
   X,
   Calendar,
   ShieldCheck,
-  UserCircle
+  UserCircle,
+  MonitorPlay
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -85,6 +86,13 @@ const AdminLayout = ({ children }) => {
         </nav>
 
         <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 space-y-2">
+          <Link
+            to="/app"
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all duration-200"
+          >
+            <MonitorPlay size={22} />
+            Buka Mode Pengetesan
+          </Link>
           <div className="flex items-center gap-3 p-3 mb-2">
             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 overflow-hidden border-2 border-white dark:border-slate-600">
                {user?.foto_identitas ? <img src={user.foto_identitas} alt="avatar" /> : <UserCircle size={24} />}
@@ -173,7 +181,15 @@ const AdminLayout = ({ children }) => {
                   );
                 })}
               </nav>
-              <div className="p-6 border-t dark:border-slate-700">
+              <div className="p-6 border-t dark:border-slate-700 space-y-3">
+                <Link
+                  to="/app"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all"
+                >
+                  <MonitorPlay size={22} />
+                  Buka Mode Pengetesan
+                </Link>
                 <button
                   onClick={handleLogoutMobile}
                   className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-rose-500 hover:bg-rose-50"

@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, SuperAdminRoute, GuruRoute } from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 import AdminLayout from './components/Layout/AdminLayout';
 
@@ -43,11 +43,17 @@ export default function App() {
       return '/admin/dashboard';
     }
 
+    // Admin Saringan → panel admin
+    if (isAdmin) {
+      return '/admin/dashboard';
+    }
+
+    // Guru Saringan → halaman pengetesan
     const needsToSelect = !selectedPonpesId && accessiblePonpes?.length > 1;
     if (needsToSelect) {
       return '/select-ponpes';
     }
-    return isAdmin ? '/admin/dashboard' : '/app';
+    return '/app';
   };
 
   const authRedirectPath = getAuthenticatedRedirectPath();
@@ -79,13 +85,13 @@ export default function App() {
           }
         />
 
-        {/* Guru Flow */}
+        {/* Guru Flow — hanya Guru Saringan dan Super Admin */}
         <Route
           path="/app/*"
           element={
-            <ProtectedRoute>
+            <GuruRoute>
               <GuruApp />
-            </ProtectedRoute>
+            </GuruRoute>
           }
         />
 

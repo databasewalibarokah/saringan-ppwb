@@ -139,7 +139,7 @@ export default function GuruApp() {
         setEvalType(type);
         clearSelection();
       }
-    }} user={user} />;
+    }} user={user} isAdmin={isAdmin} />;
   };
 
   return (

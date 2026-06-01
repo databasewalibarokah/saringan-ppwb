@@ -20,6 +20,10 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.roles?.some(role => role.toLowerCase().includes('admin')) || isSuperAdmin;
   const isGuru = user?.roles?.some(role => role.toLowerCase().includes('guru'));
 
+  // Guru Saringan: either has a 'guru' role OR has been assigned to at least one ponpes as guru saringan
+  const accessiblePonpes = user?.guru_saringan_ponpes_ids || [];
+  const isGuruSaringan = isGuru || accessiblePonpes.length > 0;
+
   // Default Super Admin to 'all' if no ponpes is selected
   useEffect(() => {
     if (isSuperAdmin && !selectedPonpesId && isAuthenticated) {
@@ -77,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   // Dapatkan daftar ponpes yang bisa diakses user sebagai Guru Saringan
-  const accessiblePonpes = user?.guru_saringan_ponpes_ids || [];
+  // (sudah dideklarasikan di atas bersama isGuruSaringan)
 
   return (
     <AuthContext.Provider value={{
@@ -93,6 +97,7 @@ export const AuthProvider = ({ children }) => {
       isSuperAdmin,
       isAdmin,
       isGuru,
+      isGuruSaringan,
       accessiblePonpes,
     }}>
       {children}
