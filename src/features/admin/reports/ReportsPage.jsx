@@ -14,6 +14,7 @@ import { api } from '../../../services/api';
 import Table, { TableRow, TableCell } from '../../../components/ui/Table';
 import { Badge } from '../../../components/ui/Badge';
 import Button from '../../../components/Button';
+import Pagination from '../../../components/ui/Pagination';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -103,16 +104,45 @@ const ReportsPage = () => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const [filters, setFilters] = useState({ search: '', kelas: 'Semua' });
+  const [filters, setFilters] = useState({ search: '', jenis_kelamin: 'Semua', status: 'Semua' });
+  const [periods, setPeriods] = useState([]);
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  const fetchPeriods = async () => {
+    try {
+      const data = await api.get('/saringan/periode', token);
+      const periodList = data.data || [];
+      setPeriods(periodList);
+      const active = periodList.find(p => p.aktif);
+      if (active) setSelectedPeriodeId(active.id);
+      else if (periodList.length > 0) setSelectedPeriodeId(periodList[0].id);
+    } catch (err) {
+      console.error('Error fetching periods:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPeriods();
+  }, [token]);
+
   const fetchData = async () => {
+    if (!selectedPeriodeId) return;
     setIsLoading(true);
     try {
-      const result = await api.get('/saringan/peserta', token);
+      const result = await api.get(`/saringan/peserta?filter[periode_id]=${selectedPeriodeId}`, token);
       const augmented = (result.data || result || []).map(s => ({
         ...s,
         nilai_bacaan: Math.floor(Math.random() * 20) + 80,
@@ -132,15 +162,28 @@ const ReportsPage = () => {
     }
   };
 
-  useEffect(() => { fetchData(); }, [token]);
+  useEffect(() => {
+    if (selectedPeriodeId) {
+      fetchData();
+    }
+  }, [selectedPeriodeId, token]);
 
   const filteredData = data.filter(s => {
     const matchSearch =
       s.nama?.toLowerCase().includes(filters.search.toLowerCase()) ||
       s.cocard?.toLowerCase().includes(filters.search.toLowerCase());
-    const matchKelas = filters.kelas === 'Semua' || s.kelas === filters.kelas;
-    return matchSearch && matchKelas;
+    const matchGender = filters.jenis_kelamin === 'Semua' || 
+      s.jenis_kelamin?.toLowerCase() === filters.jenis_kelamin.toLowerCase();
+    const matchStatus = filters.status === 'Semua' || 
+      s.status_lulus?.toLowerCase() === filters.status.toLowerCase();
+    return matchSearch && matchGender && matchStatus;
   });
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const totalLulus = filteredData.filter(s => s.status_lulus === 'Lulus').length;
   const avgNilai = filteredData.length
@@ -149,7 +192,7 @@ const ReportsPage = () => {
 
   const exportToExcel = () => {
     const exportData = filteredData.map(s => ({
-      'Nama': s.nama, 'Cocard': s.cocard, 'Kelas': s.kelas,
+      'Nama': s.nama, 'Cocard': s.cocard, 'Jenis Kelamin': s.jenis_kelamin,
       'Bacaan': s.nilai_bacaan, 'Penyampaian': s.nilai_penyampaian,
       'Pemahaman': s.nilai_pemahaman, 'Rata-rata': s.rata_rata, 'Status': s.status_lulus,
     }));
@@ -166,8 +209,8 @@ const ReportsPage = () => {
     doc.setFontSize(10);
     doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 14, 22);
     doc.autoTable({
-      head: [['Nama', 'Cocard', 'Kelas', 'Bacaan', 'Penyampaian', 'Rerata', 'Status']],
-      body: filteredData.map(s => [s.nama, s.cocard, s.kelas, s.nilai_bacaan, s.nilai_penyampaian, s.rata_rata, s.status_lulus]),
+      head: [['Nama', 'Cocard', 'L/P', 'Bacaan', 'Penyampaian', 'Rerata', 'Status']],
+      body: filteredData.map(s => [s.nama, s.cocard, s.jenis_kelamin, s.nilai_bacaan, s.nilai_penyampaian, s.rata_rata, s.status_lulus]),
       startY: 30, theme: 'grid',
       headStyles: { fillColor: [51, 65, 85] },
     });
@@ -213,7 +256,7 @@ const ReportsPage = () => {
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="card-animate grid grid-cols-1 sm:grid-cols-3 gap-3 p-5 bg-white dark:bg-slate-800/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm" style={{ animationDelay: '280ms' }}>
+      <div className="card-animate grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-5 bg-white dark:bg-slate-800/50 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm" style={{ animationDelay: '280ms' }}>
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
           <input
@@ -226,13 +269,31 @@ const ReportsPage = () => {
         </div>
         <select
           className="w-full px-4 py-3.5 bg-slate-100 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200 font-semibold text-base text-slate-800 dark:text-white cursor-pointer"
-          value={filters.kelas}
-          onChange={(e) => setFilters({ ...filters, kelas: e.target.value })}
+          value={selectedPeriodeId}
+          onChange={(e) => setSelectedPeriodeId(e.target.value)}
         >
-          <option value="Semua">Semua Kelas</option>
-          <option value="Pra-Remaja">Pra-Remaja</option>
-          <option value="Remaja">Remaja</option>
-          <option value="Dewasa">Dewasa</option>
+          <option value="" disabled>Pilih Periode</option>
+          {periods.map(p => (
+            <option key={p.id} value={p.id}>{p.label} {p.aktif ? '(Aktif)' : ''}</option>
+          ))}
+        </select>
+        <select
+          className="w-full px-4 py-3.5 bg-slate-100 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200 font-semibold text-base text-slate-800 dark:text-white cursor-pointer"
+          value={filters.jenis_kelamin}
+          onChange={(e) => setFilters({ ...filters, jenis_kelamin: e.target.value })}
+        >
+          <option value="Semua">Semua Gender</option>
+          <option value="laki-laki">Laki-laki</option>
+          <option value="perempuan">Perempuan</option>
+        </select>
+        <select
+          className="w-full px-4 py-3.5 bg-slate-100 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-all duration-200 font-semibold text-base text-slate-800 dark:text-white cursor-pointer"
+          value={filters.status}
+          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+        >
+          <option value="Semua">Semua Status</option>
+          <option value="lulus">Lulus</option>
+          <option value="dipertimbangkan">Dipertimbangkan</option>
         </select>
         <button
           onClick={fetchData}
@@ -257,18 +318,18 @@ const ReportsPage = () => {
           <p className="text-slate-400 font-medium">Coba ubah filter atau kata kunci pencarian.</p>
         </div>
       ) : (
-        <>
+        <div className="space-y-4">
           {/* Mobile: card layout */}
           <div className="flex flex-col gap-3 lg:hidden">
-            {filteredData.map((row, i) => (
+            {paginatedData.map((row, i) => (
               <StudentCard key={row.id || i} row={row} index={i} />
             ))}
           </div>
 
           {/* Desktop: table layout */}
           <div className="hidden lg:block">
-            <Table headers={['Nama Murid', 'Kelas', 'Bacaan', 'Penyampaian', 'Pemahaman', 'Rata-rata', 'Status']}>
-              {filteredData.map((row, i) => (
+            <Table headers={['Nama Murid', 'L/P', 'Bacaan', 'Penyampaian', 'Pemahaman', 'Rata-rata', 'Status']}>
+              {paginatedData.map((row, i) => (
                 <TableRow
                   key={row.id || i}
                   className="row-animate"
@@ -285,7 +346,11 @@ const ReportsPage = () => {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell><Badge variant="blue">{row.kelas || '-'}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant={row.jenis_kelamin?.toLowerCase() === 'laki-laki' ? 'blue' : 'rose'}>
+                      {row.jenis_kelamin?.toLowerCase() === 'laki-laki' ? 'L' : (row.jenis_kelamin?.toLowerCase() === 'perempuan' ? 'P' : '-')}
+                    </Badge>
+                  </TableCell>
                   <TableCell><span className="font-black text-slate-700 dark:text-slate-200 text-lg">{row.nilai_bacaan}</span></TableCell>
                   <TableCell><span className="font-black text-slate-700 dark:text-slate-200 text-lg">{row.nilai_penyampaian}</span></TableCell>
                   <TableCell><span className="font-black text-slate-700 dark:text-slate-200 text-lg">{row.nilai_pemahaman}</span></TableCell>
@@ -303,7 +368,19 @@ const ReportsPage = () => {
               ))}
             </Table>
           </div>
-        </>
+
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredData.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(newPerPage) => {
+              setItemsPerPage(newPerPage);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       )}
     </div>
   );

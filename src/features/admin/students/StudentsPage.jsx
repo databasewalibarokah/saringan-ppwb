@@ -13,7 +13,8 @@ import {
   Calendar,
   ChevronDown,
   Database,
-  ArrowRight
+  ArrowRight,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { api } from '../../../services/api';
@@ -32,6 +33,7 @@ const StudentsPage = () => {
   const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [genderFilter, setGenderFilter] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   
@@ -47,7 +49,7 @@ const StudentsPage = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedPeriodeId]);
+  }, [searchTerm, selectedPeriodeId, genderFilter]);
 
   const fetchPeriods = useCallback(async () => {
     try {
@@ -109,10 +111,17 @@ const StudentsPage = () => {
     }
   };
 
-  const filteredStudents = students.filter(s => 
-    s.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.cocard?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          s.cocard?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const studentGender = s.jenis_kelamin?.toLowerCase().startsWith('l') ? 'l' : (s.jenis_kelamin?.toLowerCase().startsWith('p') ? 'p' : '');
+    const matchesGender = genderFilter === 'Semua' || 
+                          (genderFilter === 'Laki-laki' && studentGender === 'l') ||
+                          (genderFilter === 'Perempuan' && studentGender === 'p');
+                          
+    return matchesSearch && matchesGender;
+  });
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const paginatedStudents = filteredStudents.slice(
@@ -147,6 +156,10 @@ const StudentsPage = () => {
     }
   };
 
+  const totalStudents = students.length;
+  const totalMale = students.filter(s => s.jenis_kelamin?.toLowerCase().startsWith('l')).length;
+  const totalFemale = students.filter(s => s.jenis_kelamin?.toLowerCase().startsWith('p')).length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -156,7 +169,7 @@ const StudentsPage = () => {
         </div>
         <div className="flex gap-3">
           {selectedPonpesId !== 'all' && (
-            <Button onClick={handleShowImportModal} className="bg-white dark:bg-slate-800 text-emerald-600 border-2 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shadow-none">
+            <Button onClick={handleShowImportModal} className="bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white shadow-lg shadow-indigo-500/30 border-none transition-all">
               <Database size={18} />
               Ambil Santri Saringan
             </Button>
@@ -165,6 +178,37 @@ const StudentsPage = () => {
             <UserPlus size={18} />
             Tambah Murid
           </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Peserta</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{totalStudents}</p>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Laki-laki</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{totalMale}</p>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Perempuan</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{totalFemale}</p>
+          </div>
         </div>
       </div>
 
@@ -198,12 +242,23 @@ const StudentsPage = () => {
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
           </div>
 
-          <button onClick={fetchStudents} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-500 hover:text-emerald-500 transition-colors">
+          {/* Gender Filter */}
+          <div className="relative flex-1 md:flex-none md:w-40 group">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors pointer-events-none" size={18} />
+            <select
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              className="w-full pl-12 pr-10 py-3 bg-slate-50 dark:bg-slate-900/50 border border-transparent focus:border-emerald-500/50 rounded-xl outline-none appearance-none transition-all text-sm font-bold cursor-pointer"
+            >
+              <option value="Semua">Semua L/P</option>
+              <option value="Laki-laki">Laki-laki (L)</option>
+              <option value="Perempuan">Perempuan (P)</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+          </div>
+
+          <button onClick={fetchStudents} title="Muat ulang data" className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-500 hover:text-emerald-500 transition-colors">
             <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
-          </button>
-          <button className="hidden md:flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-500 font-bold text-sm">
-            <Filter size={18} />
-            Filter
           </button>
         </div>
       </div>
@@ -225,12 +280,16 @@ const StudentsPage = () => {
             <TableRow key={student.id}>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-black">
-                    {student.nama?.charAt(0)}
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-black overflow-hidden border-2 border-emerald-100 dark:border-emerald-800">
+                    {student.foto_identitas ? (
+                      <img src={student.foto_identitas} alt={student.nama} className="w-full h-full object-cover" />
+                    ) : (
+                      student.nama?.charAt(0)
+                    )}
                   </div>
                   <div>
                     <p className="font-bold text-slate-800 dark:text-white leading-none mb-1">{student.nama}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{student.email || 'No Email'}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{student.kota || 'Kota Belum Diatur'}</p>
                   </div>
                 </div>
               </TableCell>
@@ -363,7 +422,7 @@ const StudentsPage = () => {
               type="button" 
               disabled={isImporting}
               onClick={() => setIsImportModalOpen(false)} 
-              className="flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200"
+              className="flex-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm transition-all"
             >
               Batal
             </Button>

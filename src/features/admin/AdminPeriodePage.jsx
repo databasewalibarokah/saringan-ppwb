@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import { AuthContext } from '../../contexts/AuthContext';
+import { api } from '../../services/api';
 
 /* ─── Skeleton card ─── */
 const SkeletonCard = ({ delay = 0 }) => (
@@ -64,15 +65,7 @@ const AdminPeriodePage = ({ onBack }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://generus.app/api/saringan/periode', {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Ponpes-Id': selectedPonpesId
-        }
-      });
-      if (!response.ok) throw new Error('Gagal mengambil data periode');
-      const result = await response.json();
+      const result = await api.get('/saringan/periode', token);
       setPeriodes(result.data || []);
     } catch (err) {
       setError(err.message);
@@ -105,27 +98,13 @@ const AdminPeriodePage = ({ onBack }) => {
     try {
       const kode_periode = `${formData.year}${String(formData.month).padStart(2, '0')}`;
 
-      const response = await fetch('https://generus.app/api/saringan/periode', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Ponpes-Id': selectedPonpesId
-        },
-        body: JSON.stringify({
-          kode_periode,
-          ponpes_id: selectedPonpesId
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Gagal menyimpann periode');
-      }
+      await api.post('/saringan/periode', {
+        kode_periode,
+        ponpes_id: selectedPonpesId
+      }, token);
 
       setIsModalOpen(false);
+      fetchPeriodes();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -142,21 +121,10 @@ const AdminPeriodePage = ({ onBack }) => {
       onConfirm: async () => {
         setIsLoading(true);
         try {
-          const response = await fetch(`https://generus.app/api/saringan/periode/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'X-Ponpes-Id': selectedPonpesId
-            },
-          });
-          if (!response.ok) {
-            const result = await response.json();
-            throw new Error(result.message || 'Gagal menghapus periode');
-          }
+          await api.delete(`/saringan/periode/${id}`, token);
           fetchPeriodes();
         } catch (err) {
-          setError(err.message);
+          setError(err.message || 'Gagal menghapus periode');
         } finally {
           setIsLoading(false);
         }
@@ -174,18 +142,10 @@ const AdminPeriodePage = ({ onBack }) => {
       onConfirm: async () => {
         setIsLoading(true);
         try {
-          const response = await fetch(`https://generus.app/api/saringan/periode/${periode.id}/toggle-aktif`, {
-            method: 'PATCH',
-            headers: {
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'X-Ponpes-Id': selectedPonpesId
-            },
-          });
-          if (!response.ok) throw new Error('Gagal mengaktifkan periode');
+          await api.patch(`/saringan/periode/${periode.id}/toggle-aktif`, null, token);
           fetchPeriodes();
         } catch (err) {
-          setError(err.message);
+          setError(err.message || 'Gagal mengaktifkan periode');
         } finally {
           setIsLoading(false);
         }
