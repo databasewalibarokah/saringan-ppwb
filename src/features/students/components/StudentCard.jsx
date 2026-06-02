@@ -26,11 +26,20 @@ const StudentCard = ({ student, isSelected, onToggleSelect }) => {
       )}
 
       {/* Avatar */}
-      <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold transition-colors 
-        ${isSelected ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}
-      >
-        {displayName.charAt(0)}
-      </div>
+      {student.foto_identitas ? (
+        <img 
+          src={student.foto_identitas} 
+          alt={displayName}
+          className={`w-12 h-12 flex-shrink-0 rounded-full object-cover transition-all 
+            ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-800 shadow-lg shadow-emerald-500/30' : 'border border-slate-200 dark:border-slate-700'}`}
+        />
+      ) : (
+        <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold transition-colors 
+          ${isSelected ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}
+        >
+          {displayName.charAt(0)}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 min-w-0">

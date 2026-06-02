@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Filter, CheckCircle, Users, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Filter, CheckCircle, Users, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
 import GlassCard from '../../components/GlassCard';
 import PageHeader from '../../components/PageHeader';
 import Button from '../../components/Button';
@@ -18,7 +18,23 @@ const BacaanSelectPage = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState('Semua'); // Semua, L, P
   const [simakanFilter, setSimakanFilter] = useState('Semua'); // Semua, 0, 1, 2, 3+
-  const [visibleCount, setVisibleCount] = useState(20);
+  
+  // Pagination and Scroll State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const fetchStudents = useCallback(async () => {
     setIsLoading(true);
@@ -54,7 +70,7 @@ const BacaanSelectPage = ({
 
   // Reset pagination when search or filters change
   useEffect(() => {
-    setVisibleCount(20);
+    setCurrentPage(1);
   }, [searchQuery, genderFilter, simakanFilter]);
 
   // Memoized filter calculation
@@ -88,9 +104,13 @@ const BacaanSelectPage = ({
     });
   }, [students, searchQuery, genderFilter, simakanFilter]);
 
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const paginatedStudents = useMemo(() => {
-    return filteredStudents.slice(0, visibleCount);
-  }, [filteredStudents, visibleCount]);
+    return filteredStudents.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredStudents, currentPage]);
 
   const genderOptions = [
     { label: 'Semua', value: 'Semua' },
@@ -105,20 +125,22 @@ const BacaanSelectPage = ({
       <div className="pb-32">
         <PageHeader title="Pilih Santri (Tes Bacaan)" onBack={onBack} />
 
-        {/* Search */}
-        <div className="mb-6 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input
-            type="text"
-            placeholder="Cari nama atau no. cocard..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/50 dark:border-slate-700/50 rounded-2xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-lg"
-          />
-        </div>
+        {/* Sticky Search & Filter Container */}
+        <div className="sticky top-0 z-30 pt-2 pb-4 mb-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 -mx-4 px-4 sm:-mx-8 sm:px-8">
+          {/* Search */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Cari nama atau no. cocard..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/50 dark:border-slate-700/50 rounded-2xl text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-lg"
+            />
+          </div>
 
-        {/* Filters Section */}
-        <div className="space-y-4 mb-8">
+          {/* Filters Section */}
+          <div className="space-y-4">
           {/* Gender Filter */}
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Filter Gender</p>
@@ -159,6 +181,7 @@ const BacaanSelectPage = ({
             </div>
           </div>
         </div>
+        </div>
 
         {/* Student List Area */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -195,9 +218,18 @@ const BacaanSelectPage = ({
                   onClick={() => toggleStudent(student)}
                   className={`p-4 flex items-center gap-4 transition-all cursor-pointer active:scale-[0.98] ${isSelected ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 ring-1 ring-emerald-500/30 shadow-lg shadow-emerald-500/10' : ''}`}
                 >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${isSelected ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>
-                    {(displayName || 'S').charAt(0)}
-                  </div>
+                  {student.foto_identitas ? (
+                    <img 
+                      src={student.foto_identitas} 
+                      alt={displayName}
+                      className={`w-12 h-12 flex-shrink-0 rounded-full object-cover transition-all 
+                        ${isSelected ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-800 shadow-sm' : 'border border-slate-200 dark:border-slate-700'}`}
+                    />
+                  ) : (
+                    <div className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold transition-colors ${isSelected ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>
+                      {(displayName || 'S').charAt(0)}
+                    </div>
+                  )}
                   <div className="flex-1 overflow-hidden min-w-0">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white leading-tight truncate">{displayName}</h3>
                     <div className="flex items-center gap-2 mt-1">
@@ -231,17 +263,46 @@ const BacaanSelectPage = ({
           )}
         </div>
 
-        {/* Load More Button */}
-        {filteredStudents.length > visibleCount && (
-          <div className="mt-8 flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setVisibleCount(prev => prev + 20)}
-              className="w-full sm:w-auto px-8"
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="col-span-full flex items-center justify-between mt-8 bg-white/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 backdrop-blur-sm">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => {
+                setCurrentPage(prev => Math.max(prev - 1, 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
             >
-              Muat Lebih Banyak ({filteredStudents.length - visibleCount} lagi)
-            </Button>
+              <ChevronLeft size={16} />
+              <span className="hidden sm:inline">Sebelumnya</span>
+            </button>
+            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Hal <span className="text-slate-800 dark:text-white font-bold">{currentPage}</span> / {totalPages}
+            </div>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => {
+                setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-1 px-4 py-2 bg-white dark:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm font-medium text-sm"
+            >
+              <span className="hidden sm:inline">Selanjutnya</span>
+              <ChevronRight size={16} />
+            </button>
           </div>
+        )}
+
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-28 right-6 p-3 bg-emerald-600 text-white rounded-full shadow-xl hover:bg-emerald-500 active:scale-95 transition-all z-40 flex items-center justify-center"
+            aria-label="Kembali ke atas"
+          >
+            <ArrowUp size={24} />
+          </button>
         )}
 
         {/* Selected Bottom Bar */}

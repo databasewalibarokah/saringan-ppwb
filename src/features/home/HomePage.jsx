@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Clock, BookOpen, Star, ArrowLeft } from 'lucide-react';
+import { Users, Clock, BookOpen, Star, ArrowLeft, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GlassCard from '../../components/GlassCard';
 import MenuLink from '../../components/MenuLink';
@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 const HomePage = ({ onNavigate, user, isAdmin }) => {
   const { token } = useAuth();
-  const [stats, setStats] = useState({ totalSantri: 0, andaSimak: 0 });
+  const [stats, setStats] = useState({ totalSantri: 0, andaSimak: 0, putra: 0, putri: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,9 +17,13 @@ const HomePage = ({ onNavigate, user, isAdmin }) => {
         const response = await api.get('/saringan/peserta', token);
         const data = response.data || [];
 
+        const uniqueData = Array.from(new Map(data.map(item => [item.id, item])).values());
+
         setStats({
-          totalSantri: response.total || data.length || 0,
-          andaSimak: data.filter(s => s.telah_disimak).length || 0
+          totalSantri: response.total || uniqueData.length || 0,
+          andaSimak: uniqueData.filter(s => s.telah_disimak).length || 0,
+          putra: uniqueData.filter(s => s.jenis_kelamin === 'laki-laki' || s.gender === 'L').length || 0,
+          putri: uniqueData.filter(s => s.jenis_kelamin === 'perempuan' || s.gender === 'P' || s.jenis_kelamin === 'perempuan').length || 0
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -64,6 +68,24 @@ const HomePage = ({ onNavigate, user, isAdmin }) => {
             {isLoading ? '...' : stats.andaSimak}
           </h3>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Anda Simak</p>
+        </GlassCard>
+
+        <GlassCard className="p-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
+          <User className="text-blue-500 mb-3" size={28} />
+          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-1">
+            {isLoading ? '...' : stats.putra}
+          </h3>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Santri Putra</p>
+        </GlassCard>
+
+        <GlassCard className="p-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-16 h-16 bg-pink-500/10 rounded-full blur-xl group-hover:bg-pink-500/20 transition-all"></div>
+          <User className="text-pink-500 mb-3" size={28} />
+          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mb-1">
+            {isLoading ? '...' : stats.putri}
+          </h3>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Santri Putri</p>
         </GlassCard>
       </div>
 
